@@ -1,13 +1,13 @@
-pragma solidity 0.8.19;
+pragma solidity 0.8.24;
 
 contract DungeonEngine {
 
     address public creator;
     uint public fee;
-    uint public top;
-    uint public bottom;
-    uint public left;
-    uint public right;
+    int public top;
+    int public bottom;
+    int public left;
+    int public right;
     uint[10] public lootValue;
     struct Room {
         bool found;
@@ -29,6 +29,16 @@ contract DungeonEngine {
         int y;
     }
     mapping(int => mapping(int => Room)) dungeon; // x y
+    mapping(int => uint8[]) dungeonSerialized;
+    // 0 -> not found
+    // 1 -> wood not opened
+    // 2 -> iron not opened
+    // 3 -> gold not opened
+    // 4 -> diamond not opened
+    // 5 -> wood opened
+    // 6 -> iron opened
+    // 7 -> gold opened
+    // 8 -> diamond opened
     mapping(address => bool) isInside;
     mapping(address => Position) userPosition;
     mapping(address => Inventory) userInventory;
@@ -41,17 +51,20 @@ contract DungeonEngine {
 
     constructor() {
         creator = msg.sender;
-        fee = 100 finney;
+        fee = 100_000_000_000_000_000;
         top = 1;
         bottom = -1;
         left = -1;
         right = 1;
-        dugeon[-1][0] = { true, false, 0 };
-        dugeon[1][0] = { true, false, 0 };
-        dugeon[0][1] = { true, false, 0 };
-        dugeon[0][-1] = { true, false, 0 };
+        dungeon[-1][0] = Room(true, false, 0);
+        dungeon[1][0] = Room(true, false, 0);
+        dungeon[0][1] = Room(true, false, 0);
+        dungeon[0][-1] = Room(true, false, 0);
+        dungeonSerialized[-1] = [0, 1, 0];
+        dungeonSerialized[0] = [1, 5, 1];
+        dungeonSerialized[1] = [0, 1, 0];
         totalRooms = 4;
-        lootValue = [10 finney, 20 finney, 50 finney, 100 finney, 200 finney, 500 finney, 1 ether, 2 ether, 5 ether, 10 ether];
+        lootValue = [10_000_000_000_000_000, 20_000_000_000_000_000, 50_000_000_000_000_000, 100_000_000_000_000_000, 200_000_000_000_000_000, 500_000_000_000_000_000, 1 ether, 2 ether, 5 ether, 10 ether];
     }
 
     modifier mustBeInside {
@@ -60,7 +73,7 @@ contract DungeonEngine {
     }
 
     modifier mustBeAtStart {
-        require(userPosition[user].x == 0 && userPosition[user].y == 0, "Go to the map entrance to buy from merchant!");
+        require(userPosition[msg.sender].x == 0 && userPosition[msg.sender].y == 0, "Go to the map entrance to buy from merchant!");
         _;
     }
 
@@ -69,31 +82,35 @@ contract DungeonEngine {
         _;
     }
 
+    function getDungeonRow(int y) public view returns (uint8[] memory) {
+        return dungeonSerialized[y];
+    }
+
     function enter() public payable {
         require(msg.value >= fee, "Pay 0.1 SOL to enter the dungeon!");
         payable(creator).transfer(msg.value);
         if (!isInside[msg.sender]) {
             totalInside += 1;
-            userPosition[msg.sender] = { 0, 0 };
+            userPosition[msg.sender] = Position(0, 0);
         }
         isInside[msg.sender] = true;
     }
 
     function move(int x, int y) public payable mustBeInside notOpening {
-        start = userPosition[msg.sender]
-        price = routePrice(start.x, start.y, x, y);
+        Position memory start = userPosition[msg.sender];
+        uint price = routePrice(start.x, start.y, x, y);
         require(price <= msg.value, "Not enough money provided for moving!");
         require(dungeon[x][y].open, "Cannot go to a closed room!");
-        userPosition[msg.sender] = { x, y };
+        userPosition[msg.sender] = Position(x, y);
     }
 
     function openRoom(int x, int y) public mustBeInside notOpening {
         require(isAdjacent(msg.sender, x, y), "Must be adjacent to the room!");
         require(userInventory[msg.sender].keys[dungeon[x][y].rarity] > 0, "Key missing!");
         userInventory[msg.sender].keys[dungeon[x][y].rarity] -= 1;
-        userPosition[msg.sender] = { x, y };
+        userPosition[msg.sender] = Position(x, y);
         dungeon[x][y].open = true;
-        opening[msg.sender] = { true, block.number, x, y };
+        opening[msg.sender] = OpeningData(true, block.number, x, y);
     }
 
     function completeOpening() public mustBeInside {
@@ -102,10 +119,10 @@ contract DungeonEngine {
         }
         require(block.number >= opening[msg.sender].atBlock + 40, "Must wait 40 blocks before complete opening!");
         if (block.number <= opening[msg.sender].atBlock + 256) {
-            _rewardUser(msg.sender, dungeon[x][y].rarity);
+            _rewardUser(msg.sender, dungeon[opening[msg.sender].x][opening[msg.sender].y].rarity);
             _discoverVicinity(opening[msg.sender].x, opening[msg.sender].y, msg.sender);
         }
-        opening[msg.sender] = { false, 0, 0, 0 };
+        opening[msg.sender] = OpeningData(false, 0, 0, 0);
     }
 
     function buyKeys(uint number) public payable mustBeInside mustBeAtStart {
@@ -114,7 +131,7 @@ contract DungeonEngine {
     }
 
     function sellLoot() public mustBeInside mustBeAtStart {
-        uint memory money = 0;
+        uint money = 0;
         for (uint8 i = 0; i < 10; i++) {
             money += userInventory[msg.sender].loot[i] * lootValue[i];
             userInventory[msg.sender].loot[i] = 0;
@@ -124,13 +141,22 @@ contract DungeonEngine {
         }
     }
 
-    function isAdjacent(address user, int x, int y) public returns(bool) {
-        pos = userPosition[user];
+    function isAdjacent(address user, int x, int y) public view returns(bool) {
+        Position memory pos = userPosition[user];
         return (pos.x == x && (pos.y == y - 1 || pos.y == y + 1)) || (pos.y == y && (pos.x == x - 1 || pos.x == x + 1));
     }
 
-    function routePrice(int fromX, int fromY, int toX, int toY) public returns(uint) {
-        return 0;
+    function routePrice(int fromX, int fromY, int toX, int toY) public pure returns(uint) {
+        return (numDigits(fromX-toX) + numDigits(fromY-toY)) * 100_000_000_000_000; // 0.0001 SOL per digit;
+    }
+
+    function numDigits(int number) public pure returns (uint8) {
+        uint8 digits = 0;
+        while (number != 0) {
+            number /= 10;
+            digits++;
+        }
+        return digits;
     }
 
     function _rewardUser(address user, uint8 rarity) private {
@@ -138,7 +164,7 @@ contract DungeonEngine {
             payable(user).transfer(address(this).balance / 2);
             return;
         }
-        result = _randomPercentile(opening[user].atBlock, 10);
+        uint8 result = _randomPercentile(opening[user].atBlock, 10);
         if (result < 10) {
             userInventory[user].loot[3 + 3 * rarity] += 1;
         } else if (result < 30) {
@@ -155,73 +181,95 @@ contract DungeonEngine {
 
     function _discoverVicinity(int x, int y, address user) private {
         if (!dungeon[x][y+1].found) {
-            rarity = _generateRarity(opening[user].atBlock + 20);
-            dungeon[x][y+1] = { true, false, rarity };
-            emit NewRoom(x, y+1);
-            if (y + 1 > top) {
-                top = y + 1;
-            }
+            uint8 rarity = _generateRarity(opening[user].atBlock + 20);
+            _createRoom(x, y+1, rarity);
         }
         if (!dungeon[x][y-1].found) {
-            rarity = _generateRarity(opening[user].atBlock + 25);
-            dungeon[x][y-1] = { true, false, rarity };
-            emit NewRoom(x, y-1);
-            if (y - 1 < bottom) {
-                bottom = y - 1;
-            }
+            uint8 rarity = _generateRarity(opening[user].atBlock + 25);
+            _createRoom(x, y-1, rarity);
         }
         if (!dungeon[x+1][y].found) {
-            rarity = _generateRarity(opening[user].atBlock + 30);
-            dungeon[x+1][y] = { true, false, rarity };
-            emit NewRoom(x+1, y);
-            if (x + 1 > right) {
-                right = x + 1;
-            }
+            uint8 rarity = _generateRarity(opening[user].atBlock + 30);
+            _createRoom(x+1, y, rarity);
         }
         if (!dungeon[x-1][y].found) {
-            rarity = _generateRarity(opening[user].atBlock + 35);
-            dungeon[x-1][y] = { true, false, rarity };
-            emit NewRoom(x-1, y);
-            if (x - 1 < left) {
-                left = x - 1;
-            }
+            uint8 rarity = _generateRarity(opening[user].atBlock + 35);
+            _createRoom(x-1, y, rarity);
         }
     }
 
+    function _createRoom(int x, int y, uint8 rarity) private {
+        dungeon[x][y] = Room(true, false, rarity);
+        _expandSerialization(x, y, rarity);
+        emit NewRoom(x, y);
+    }
+
+    function _expandSerialization(int x, int y, uint8 rarity) private {
+        if (y > top) {
+            top = y;
+        }
+    
+        if (y < bottom) {
+            bottom = y;
+        }
+    
+        if (x > right) {
+            right = x;
+            for (int i = top; i >= bottom; i--) {
+            }
+        }
+    
+        if (x < left) {
+            left = x;
+            for (int i = top; i >= bottom; i--) {
+                for (int j = right; j > left; j--) {
+                    dungeonSerialized[i][uint(j-left)] = dungeonSerialized[i][uint(j-left-1)];
+                }
+                dungeonSerialized[i][0] = 0;
+            }
+        }
+
+        dungeonSerialized[y][uint(x-left)] = rarity + 1;
+    }
+
     function _generateRarity(uint startBlock) private returns(uint8) {
-        uint8 memory rarity = 0;
+        uint8 rarity = 0;
         uint8 result = _randomPercentile(startBlock, 5);
-        if (result >= diamond()):
+        if (result >= diamond()) {
             rarity = 3;
             lastRarityAt[3] = totalRooms;
-        else if (result >= gold()):
+        } else if (result >= gold()) {
             rarity = 2;
             lastRarityAt[2] = totalRooms;
-        else if (result >= iron()):
+        } else if (result >= iron()) {
             rarity = 1;
             lastRarityAt[1] = totalRooms;
+        }
         totalRooms += 1;
         return rarity;
     }
 
-    function diamond() public returns(uint8) {
-        return 100 - (((totalRooms - lastRarityAt[3]) / 100) - 10);
+    function diamond() public view returns(uint8) {
+        int res = 100 - (((int(totalRooms) - int(lastRarityAt[3])) / 100) - 10);
+        return res >= 0 ? uint8(uint(res)) : 0;
     }
 
-    function gold() public returns(uint8) {
-        return 100 - (((totalRooms - lastRarityAt[2]) / 4) - 25);
+    function gold() public view returns(uint8) {
+        int res = 100 - (((int(totalRooms) - int(lastRarityAt[2])) / 4) - 25);
+        return res >= 0 ? uint8(uint(res)) : 0;
     }
 
-    function iron() public returns(uint8) {
-        return 100 - (((totalRooms - lastRarityAt[1]) * 5) - 50);
+    function iron() public view returns(uint8) {
+        int res =  100 - (((int(totalRooms) - int(lastRarityAt[1])) * 5) - 50);
+        return res >= 0 ? uint8(uint(res)) : 0;
     }
 
-    function _randomPercentile(uint startBlock, uint8 len) private returns(uint8) {
+    function _randomPercentile(uint startBlock, uint8 len) private view returns(uint8) {
         bytes memory b;
         for (uint8 i = 0; i < len; i++) {
             b = bytes.concat(b, blockhash(startBlock + i));
         }
-        uint256 memory result = uint256(keccak256(b));
+        uint256 result = uint256(keccak256(b));
         return uint8(result % 100);
     }
 }
