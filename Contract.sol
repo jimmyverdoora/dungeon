@@ -116,8 +116,6 @@ contract DungeonEngine {
         require(isAdjacent(msg.sender, x, y), "Must be adjacent to the room!");
         require(userInventory[msg.sender].keys[dungeon[x][y].rarity] > 0, "Key missing!");
         userInventory[msg.sender].keys[dungeon[x][y].rarity] -= 1;
-        userPosition[msg.sender] = Position(x, y);
-        dungeon[x][y].open = true;
         opening[msg.sender] = OpeningData(true, block.number, x, y);
     }
 
@@ -126,9 +124,13 @@ contract DungeonEngine {
             return;
         }
         require(block.number >= opening[msg.sender].atBlock + 40, "Must wait 40 blocks before complete opening!");
+        int x = opening[msg.sender].x;
+        int y = opening[msg.sender].y;
         if (block.number <= opening[msg.sender].atBlock + 256) {
-            _rewardUser(msg.sender, dungeon[opening[msg.sender].x][opening[msg.sender].y].rarity);
-            _discoverVicinity(opening[msg.sender].x, opening[msg.sender].y, msg.sender);
+            userPosition[msg.sender] = Position(x, y);
+            dungeon[x][y].open = true;
+            _rewardUser(msg.sender, dungeon[x][y].rarity);
+            _discoverVicinity(x, y, msg.sender);
         }
         opening[msg.sender] = OpeningData(false, 0, 0, 0);
     }

@@ -25,7 +25,7 @@ const lootValue = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];
 // React component to render dungeon map
 function Dungeon() {
 
-  const { account, chainId, ethereum } = useMetaMask();
+  const { account, ethereum } = useMetaMask();
   const web3 = new Web3(RPC_URL);
   const contract = new web3.eth.Contract(abi, CONTRACT_ADDRESS);
 
@@ -33,6 +33,7 @@ function Dungeon() {
   const [showShop, setShowShop] = useState(false);
   const [action, setAction] = useState(null);
   const [info, setInfo] = useState(null);
+  const [showOpen, setShowOpen] = useState(null);
   const [balance, setBalance] = useState(0);
   const [inventory, setInventory] = useState({ keys: [0, 0, 0, 0], loot: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] });
   const [diamondValue, setDiamondValue] = useState(0);
@@ -42,10 +43,10 @@ function Dungeon() {
   const totalLootValue = inventory.loot.map(n => n * lootValue[n]).reduce((a, b) => a + b, 0);
 
   useEffect(() => {
-    loadInfo();
+    loadInfo(true);
   }, []);
 
-  const loadInfo = async () => {
+  const loadInfo = async (atStart=false) => {
     const b = await ethereum.request({ method: 'eth_getBalance', params: [account] });
     setBalance(ethers.formatEther(b));
     const isInside = await contract.methods.isInside(account).call();
@@ -53,6 +54,13 @@ function Dungeon() {
       const p = await contract.methods.userPosition(account).call();
       setPosition([Number(p.x), Number(p.y)]);
       const inv = await contract.methods.getInventory(account).call();
+      if (!atStart) {
+        const newLoot = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].filter(i => Number(inv.loot[i]) > inventory.loot[i])[0];
+        const newKey = [0, 1, 2, 3].filter(i => Number(inv.keys[i]) > inventory.keys[i])[0];
+        if (newLoot) {
+          setInfo(`You found a ${lootName[newLoot]}${newKey ? ` and a ${rarityName[newKey]} key` : ""}}!`)
+        }
+      }
       setInventory({ keys: inv.keys.map(k => Number(k)), loot: inv.loot.map(k => Number(k)) });
     }
     const cb = await web3.eth.getBalance(CONTRACT_ADDRESS);
@@ -97,11 +105,11 @@ function Dungeon() {
         return setInfo('MOVE TO THE MERCHANT TO BUY AND SELL!');
       }
     } else if (cell.open && (position[0] !== cell.x || position[0] !== cell.y)) {
-      alert("MOVE TO CELL");
+      return await move(cell.x, cell.y);
     } else if (!cell.open) {
       if (isAdjacent(cell)) {
         if (hasKey(cell)) {
-          alert("OPEN!!!!!!!!!!");
+          return setShowOpen([cell.x, cell.y]);
         } else {
           return setInfo("YOU NEED A KEY TO OPEN THE ROOM!");
         }
@@ -119,6 +127,24 @@ function Dungeon() {
       const hash = await con.methods.enter().send({
         from: account,
         value: Web3.utils.toWei(fee, 'finney')
+      });
+      console.log(hash);
+      loadInfo();
+    } catch (e) {
+      console.error(e);
+    }
+    setAction(null);
+  }
+
+  async function move(x, y) {
+    const w3 = new Web3(ethereum);
+    const con = new w3.eth.Contract(abi, CONTRACT_ADDRESS);
+    try {
+      setAction(`Moving to ${x}x ${y}y...`);
+      const price = await con.methods.routePrice(position[0], position[1], x, y).call();
+      const hash = await con.methods.move(x, y).send({
+        from: account,
+        value: price
       });
       console.log(hash);
       loadInfo();
@@ -156,6 +182,42 @@ function Dungeon() {
         value: Web3.utils.toWei(num * fee, 'finney')
       });
       console.log(hash);
+      loadInfo();
+    } catch (e) {
+      console.error(e);
+    }
+    setAction(null);
+  }
+
+  async function startDoorOpening() {
+    const x = showOpen[0];
+    const y = showOpen[1];
+    setShowOpen(null);
+    const w3 = new Web3(ethereum);
+    const con = new w3.eth.Contract(abi, CONTRACT_ADDRESS);
+    try {
+      setAction(`Initiating opening of ${x}x ${y}y...`);
+      const hash = await con.methods.openRoom(x, y).send({
+        from: account
+      });
+      console.log(hash);
+      let blockNumber = null;
+      while (!blockNumber) {
+        await new Promise(r => setTimeout(r, 1000));
+        const tx = await w3.eth.getTransaction(hash.transactionHash);
+        blockNumber = tx.blockNumber;
+      }
+      console.log('tx mined at block ' + blockNumber);
+      let currentBlock = await w3.eth.getBlockNumber();
+      while (currentBlock - blockNumber <= 40) {
+        await new Promise(r => setTimeout(r, 1000));
+        currentBlock = await w3.eth.getBlockNumber();
+      }
+      setAction(`Sending opening confirmation of ${x}x ${y}y...`);
+      const hash2 = await con.methods.completeOpening().send({
+        from: account
+      });
+      console.log(hash2);
       loadInfo();
     } catch (e) {
       console.error(e);
@@ -275,6 +337,25 @@ function Dungeon() {
         <p style={{ marginBottom: 0, marginTop: 0 }}>| {info} |</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#ff2222' }} onClick={() => setInfo(null)}>Close</a>{'\u00A0'.repeat(info.length - 4)}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+-{'-'.repeat(info.length)}-+</p>
+      </div>}
+      {showOpen && <div style={{ zIndex: 1, color: '#ff2222', backgroundColor: 'black', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontFamily: 'monospace' }}>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+---------------------------------------------------------------------+</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| <span style={{color: '#ffa347'}}>WARNING! READ EXTREMELY CAREFULLY!!!!!</span>{'\u00A0'.repeat(30)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| You are about to open cell {showOpen[0]}x {showOpen[1]}y.{'\u00A0'.repeat(3)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| To grant a tamper-resistant randomness algorithm the contract uses{'\u00A0'.repeat(2)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| multiple calls of the blockhash function. Unfortunately, block{'\u00A0'.repeat(6)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| hashes older than 256 blocks are not accessible. To open a door you{'\u00A0'}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| will need to submit 2 transactions which are mined less than 256{'\u00A0'.repeat(4)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| and more than 40 blocks apart. The dapp will take care of that, you{'\u00A0'}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| just need to do the following: send the 1st transaction. After 40{'\u00A0'.repeat(3)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| blocks (roughly 10 seconds), the metamask pop up will show up again{'\u00A0'}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| asking you to sign and send the 2nd one. You have to send it as{'\u00A0'.repeat(5)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| soon as possible (ideally within 30 seconds should be enough but{'\u00A0'.repeat(4)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| just sign and send as soon as it pops up).{'\u00A0'.repeat(26)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| <span style={{color: '#ffa347'}}>TLDR</span>: click below to send the 1st transaction. As soon as you see{'\u00A0'.repeat(3)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>|{'\u00A0'.repeat(7)}the pop up with the 2nd transaction, sign and send it as well |</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#ffa347' }} onClick={() => startDoorOpening()}>I UNDERSTAND, LET'S OPEN THIS DOOR!</a>{'\u00A0'.repeat(27)}<a href="#" style={{ textDecoration: 'none', color: '#ffa347' }} onClick={() => setShowOpen(null)}>CLOSE</a> |</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+---------------------------------------------------------------------+</p>
       </div>}
       <div style={{ color: rarityColor[3], backgroundColor: 'black', position: 'absolute', top: '10px', right: '10px', fontFamily: 'monospace' }}>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| CURRENT DIAMOND DROP: {diamondValue} ARB</p>
