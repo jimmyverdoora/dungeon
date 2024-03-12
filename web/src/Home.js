@@ -1,18 +1,21 @@
 import React from 'react';
 import { useMetaMask } from "metamask-react";
+import { CHAIN_ID } from './constants';
 
 
 const rarityColor = ['#ad846a', '#b0b0b0', '#ffc247', '#47fffc'];
 
 function Home() {
 
-  const { status, connect } = useMetaMask();
+  const { status, connect, switchChain } = useMetaMask();
 
   const handleConnect = async () => {
     if (status == 'unavailable') {
       window.open('https://metamask.io/', '_blank');
     } else if (status == 'notConnected') {
       await connect();
+    } else if (status == 'connected') {
+      await switchChain('0x' + CHAIN_ID.toString(16));
     }
   };
 
@@ -31,17 +34,24 @@ function Home() {
   const button = status == 'unavailable' ? 
 `/'''''''''''''''''''''''''''\\
 | INSTALL METAMASK TO ENTER |
-\\,,,,,,,,,,,,,,,,,,,,,,,,,,,/` :
+\\,,,,,,,,,,,,,,,,,,,,,,,,,,,/` : status == 'connected' ?
+`/''''''''''''''''''''''''''\\
+| SWITCH CHAIN TO ARBITRUM |
+\\,,,,,,,,,,,,,,,,,,,,,,,,,,/` :
 `/''''''''''''''''''''''''''\\
 | CONNECT WALLET AND ENTER |
 \\,,,,,,,,,,,,,,,,,,,,,,,,,,/`;
   const button2 = status == 'unavailable' ?
 `/''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''\\
 | NOW STOP FUCKING AROUND YOU DAMN DEGEN AND INSTALL METAMASK! |
-\\,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,/` :
+\\,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,/`  : status == 'connected' ?
+`/''''''''''''''''''''''''''\\
+| SWITCH CHAIN TO ARBITRUM |
+\\,,,,,,,,,,,,,,,,,,,,,,,,,,/` :
 `/'''''''''''''''''''''''''''''''''''''''''''''''''''''''\\
 | NOW STOP FUCKING AROUND YOU DAMN DEGEN AND GO INSIDE! |
 \\,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,/`;
+
   return (
     <div style={{ color: '#ffd480', fontFamily: 'monospace' }}>
       <div style={{ display: 'flex', justifyContent: 'center' }}>

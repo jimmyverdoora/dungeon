@@ -28,8 +28,8 @@ contract DungeonEngine {
         int x;
         int y;
     }
-    mapping(int => mapping(int => Room)) dungeon; // x y
-    mapping(int => uint8[]) dungeonSerialized;
+    mapping(int => mapping(int => Room)) public dungeon; // x y
+    mapping(int => uint8[]) public dungeonSerialized;
     // 0 -> not found
     // 1 -> wood not opened
     // 2 -> iron not opened
@@ -39,10 +39,10 @@ contract DungeonEngine {
     // 6 -> iron opened
     // 7 -> gold opened
     // 8 -> diamond opened
-    mapping(address => bool) isInside;
-    mapping(address => Position) userPosition;
+    mapping(address => bool) public isInside;
+    mapping(address => Position) public userPosition;
     mapping(address => Inventory) userInventory;
-    mapping(address => OpeningData) opening;
+    mapping(address => OpeningData) public opening;
     uint public totalInside;
     uint public totalRooms;
     uint[4] public lastRarityAt;
@@ -84,6 +84,10 @@ contract DungeonEngine {
     modifier notOpening {
         require(!opening[msg.sender].isOpening, "You are opening a door!");
         _;
+    }
+
+    function getInventory(address user) public view returns(Inventory memory) {
+        return userInventory[user];
     }
 
     function getDungeonRow(int y) public view returns (uint8[] memory) {
@@ -129,12 +133,12 @@ contract DungeonEngine {
         opening[msg.sender] = OpeningData(false, 0, 0, 0);
     }
 
-    function buyKeys(uint number) public payable mustBeInside mustBeAtStart {
+    function buyKeys(uint number) public payable mustBeInside notOpening mustBeAtStart {
         require(msg.value >= number * fee / reducer, "You have to send enough money to buy the key(s)!");
         userInventory[msg.sender].keys[0] += number;
     }
 
-    function sellLoot() public mustBeInside mustBeAtStart {
+    function sellLoot() public mustBeInside notOpening mustBeAtStart {
         uint money = 0;
         for (uint8 i = 0; i < 10; i++) {
             money += userInventory[msg.sender].loot[i] * lootValue[i] / reducer;
@@ -150,7 +154,7 @@ contract DungeonEngine {
         return (pos.x == x && (pos.y == y - 1 || pos.y == y + 1)) || (pos.y == y && (pos.x == x - 1 || pos.x == x + 1));
     }
 
-    function routePrice(int fromX, int fromY, int toX, int toY) public pure returns(uint) {
+    function routePrice(int fromX, int fromY, int toX, int toY) public view returns(uint) {
         return (numDigits(fromX-toX) + numDigits(fromY-toY)) * 10_000_000_000_000_000 / reducer; // 0.01 ARB per digit;
     }
 
