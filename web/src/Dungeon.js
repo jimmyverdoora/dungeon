@@ -124,11 +124,11 @@ function Dungeon() {
     const con = new w3.eth.Contract(abi, CONTRACT_ADDRESS);
     try {
       setAction('Entering dungeon...');
-      const hash = await con.methods.enter().send({
+      const receipt = await con.methods.enter().send({
         from: account,
         value: Web3.utils.toWei(fee, 'finney')
       });
-      console.log(hash);
+      console.log(receipt);
       loadInfo();
     } catch (e) {
       console.error(e);
@@ -142,11 +142,11 @@ function Dungeon() {
     try {
       setAction(`Moving to ${x}x ${y}y...`);
       const price = await con.methods.routePrice(position[0], position[1], x, y).call();
-      const hash = await con.methods.move(x, y).send({
+      const receipt = await con.methods.move(x, y).send({
         from: account,
         value: price
       });
-      console.log(hash);
+      console.log(receipt);
       loadInfo();
     } catch (e) {
       console.error(e);
@@ -160,10 +160,10 @@ function Dungeon() {
     const con = new w3.eth.Contract(abi, CONTRACT_ADDRESS);
     try {
       setAction('Selling loot...');
-      const hash = await con.methods.sellLoot().send({
+      const receipt = await con.methods.sellLoot().send({
         from: account
       });
-      console.log(hash);
+      console.log(receipt);
       loadInfo();
     } catch (e) {
       console.error(e);
@@ -177,11 +177,11 @@ function Dungeon() {
     const con = new w3.eth.Contract(abi, CONTRACT_ADDRESS);
     try {
       setAction('Buying key(s)...');
-      const hash = await con.methods.buyKeys(num).send({
+      const receipt = await con.methods.buyKeys(num).send({
         from: account,
         value: Web3.utils.toWei(num * fee, 'finney')
       });
-      console.log(hash);
+      console.log(receipt);
       loadInfo();
     } catch (e) {
       console.error(e);
@@ -197,14 +197,14 @@ function Dungeon() {
     const con = new w3.eth.Contract(abi, CONTRACT_ADDRESS);
     try {
       setAction(`Initiating opening of ${x}x ${y}y...`);
-      const hash = await con.methods.openRoom(x, y).send({
+      const receipt = await con.methods.openRoom(x, y).send({
         from: account
       });
-      console.log(hash);
+      console.log(receipt);
       let blockNumber = null;
       while (!blockNumber) {
         await new Promise(r => setTimeout(r, 1000));
-        const tx = await w3.eth.getTransaction(hash.transactionHash);
+        const tx = await w3.eth.getTransaction(receipt.transactionHash);
         blockNumber = tx.blockNumber;
       }
       console.log('tx mined at block ' + blockNumber);
@@ -214,10 +214,10 @@ function Dungeon() {
         currentBlock = await w3.eth.getBlockNumber();
       }
       setAction(`Sending opening confirmation of ${x}x ${y}y...`);
-      const hash2 = await con.methods.completeOpening().send({
+      const rec2 = await con.methods.completeOpening().send({
         from: account
       });
-      console.log(hash2);
+      console.log(rec2);
       loadInfo();
     } catch (e) {
       console.error(e);
