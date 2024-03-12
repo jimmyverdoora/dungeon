@@ -51,7 +51,7 @@ contract DungeonEngine {
 
     constructor() {
         creator = msg.sender;
-        fee = 100_000_000_000_000_000;
+        fee = 10 ether;
         top = 1;
         bottom = -1;
         left = -1;
@@ -64,7 +64,7 @@ contract DungeonEngine {
         dungeonSerialized[0] = [1, 5, 1];
         dungeonSerialized[1] = [0, 1, 0];
         totalRooms = 4;
-        lootValue = [10_000_000_000_000_000, 20_000_000_000_000_000, 50_000_000_000_000_000, 100_000_000_000_000_000, 200_000_000_000_000_000, 500_000_000_000_000_000, 1 ether, 2 ether, 5 ether, 10 ether];
+        lootValue = [1 ether, 2 ether, 5 ether, 10 ether, 20 ether, 50 ether, 100 ether, 200 ether, 500 ether, 1000 ether];
     }
 
     modifier mustBeInside {
@@ -87,7 +87,7 @@ contract DungeonEngine {
     }
 
     function enter() public payable {
-        require(msg.value >= fee, "Pay 0.1 SOL to enter the dungeon!");
+        require(msg.value >= fee, "Pay 10 ARB to enter the dungeon!");
         payable(creator).transfer(msg.value);
         if (!isInside[msg.sender]) {
             totalInside += 1;
@@ -147,7 +147,7 @@ contract DungeonEngine {
     }
 
     function routePrice(int fromX, int fromY, int toX, int toY) public pure returns(uint) {
-        return (numDigits(fromX-toX) + numDigits(fromY-toY)) * 100_000_000_000_000; // 0.0001 SOL per digit;
+        return (numDigits(fromX-toX) + numDigits(fromY-toY)) * 10_000_000_000_000_000; // 0.01 ARB per digit;
     }
 
     function numDigits(int number) public pure returns (uint8) {
