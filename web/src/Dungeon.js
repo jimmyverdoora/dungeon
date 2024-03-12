@@ -45,16 +45,16 @@ function Dungeon() {
   function generateDungeon() {
     const { top, bottom, left, right } = dungeonLimits;
     const result = [];
-    for (let i = 0; i <= top-bottom; i++) {
+    for (let i = 0; i <= top - bottom; i++) {
       const row = [];
-      for (let j = 0; j <= right-left; j++) {
+      for (let j = 0; j <= right - left; j++) {
         const code = serializedDungeon[i][j];
         const x = i + bottom;
         const y = j + left;
         if (code == 0) {
           row.push({ found: false, x, y });
         } else {
-          row.push({ found: true, open: code > 4, rarity: (code-1) % 4, x, y });
+          row.push({ found: true, open: code > 4, rarity: (code - 1) % 4, x, y });
         }
       }
       result.push(row);
@@ -62,55 +62,63 @@ function Dungeon() {
     return result;
   }
 
-  function renderAsciiBlocks(dungeonMap) {
-    const chars = 4 + Math.max(dungeonMap[0][0].x.toString().length, dungeonMap[0][0].y.toString().length, dungeonMap[dungeonMap.length - 1][dungeonMap[0].length - 1].x.toString().length, dungeonMap[dungeonMap.length - 1][dungeonMap[0].length - 1].y.toString().length);
-    let string = "";
-    for (let row = 0; row < dungeonMap.length; row++) {
-      for (let rowIndex = 0; rowIndex < 4; rowIndex++) {
-        for (let col = 0; col < dungeonMap[row].length; col++) {
-          const cell = dungeonMap[row][col];
-          let asciiBlock;
-          if (!cell.found) {
-            asciiBlock = ' '.repeat(chars);
-          } else if (cell.open) {
-            if (rowIndex == 0) {
-              asciiBlock = '+' + '-'.repeat(chars-2) + '+';
-            } else if (rowIndex <= 2) {
-              if (chars % 2) {
-                asciiBlock = cell.x === position[0] && cell.y === position[1] ? '|' + ' '.repeat((chars - 3) / 2) + `${rowIndex == 1 ? 'O' : 'X'}` + ' '.repeat((chars - 3) / 2) + '|' : `|${rowIndex == 1 ? 'x' : 'y'}:${(rowIndex == 1 ? cell.x.toString().padEnd(chars - 4, ' ') : cell.y.toString().padEnd(chars - 4, ' '))}|`;
-              } else {
-                asciiBlock = cell.x === position[0] && cell.y === position[1] ? '|' + ' '.repeat((chars - 4) / 2) + `${rowIndex == 1 ? 'O' : 'X'} ` + ' '.repeat((chars - 4) / 2) + '|' : `|${rowIndex == 1 ? 'x' : 'y'}:${(rowIndex == 1 ? cell.x.toString().padEnd(chars - 4, ' ') : cell.y.toString().padEnd(chars - 4, ' '))}|`;
-              }
-            } else {
-              asciiBlock = '+' + '-'.repeat(chars-2) + '+';
-            }
-          } else {
-            if (rowIndex == 0) {
-              asciiBlock = ' '.repeat(chars);
-            } else if (rowIndex <= 2) {
-              if (chars % 2) {
-                asciiBlock = ` ${rowIndex == 1 ? 'x' : 'y'}:${(rowIndex == 1 ? cell.x.toString().padEnd(chars - 4, ' ') : cell.y.toString().padEnd(chars - 4, ' '))} `;
-              } else {
-                asciiBlock = ` ${rowIndex == 1 ? 'x' : 'y'}:${(rowIndex == 1 ? cell.x.toString().padEnd(chars - 4, ' ') : cell.y.toString().padEnd(chars - 4, ' '))} `;
-              }
-            } else {
-              asciiBlock = ' '.repeat(chars);
-            }
-          }
-          asciiBlock = asciiBlock.replace(/X/g, `<span style="color: #4aff47">></span>`);
-          asciiBlock = asciiBlock.replace(/O/g, `<span style="color: #4aff47">o</span>`);
-          string += cell.rarity !== undefined ? `<span style="color: ${rarityColor[cell.rarity]}">` + asciiBlock + '</span>' : asciiBlock;
+  const dungeon = generateDungeon();
+  const chars = 4 + Math.max(dungeon[0][0].x.toString().length, dungeon[0][0].y.toString().length, dungeon[dungeon.length - 1][dungeon[0].length - 1].x.toString().length, dungeon[dungeon.length - 1][dungeon[0].length - 1].y.toString().length);
+
+  function renderAsciiBlocks(row) {
+    return <div>
+      <p style={{ marginBottom: 0, marginTop: 0 }}>{row.map(cell => {
+        if (!cell.found) {
+          return <span>{'\u00A0'.repeat(chars)}</span>;
+        } else if (cell.open) {
+          return <span style={{ color: rarityColor[cell.rarity] }}>{'+' + '-'.repeat(chars - 2) + '+'}</span>;
+        } else {
+          return <span>{'\u00A0'.repeat(chars)}</span>;
         }
-        string += '\n';
-      }
-    }
-    return string;
+      })}</p>
+      <p style={{ marginBottom: 0, marginTop: 0 }}>{row.map(cell => {
+        if (!cell.found) {
+          return <span>{'\u00A0'.repeat(chars)}</span>;
+        } else if (cell.open) {
+          if (cell.x === position[0] && cell.y === position[1]) {
+            return <span style={{ color: rarityColor[cell.rarity] }}>{'|' + '\u00A0'.repeat((chars - (chars % 2 ? 3 : 4)) / 2)}<span style={{ color: '#4aff47'}}>{'o'}</span>{'\u00A0'.repeat((chars - (chars % 2 ? 3 : 2)) / 2) + '|'}</span>;
+          } else {
+            return <span style={{ color: rarityColor[cell.rarity] }}>{`|x:${cell.x.toString().padEnd(chars - 4, '\u00A0')}|`}</span>;
+          }
+        } else {
+          return <span style={{ color: rarityColor[cell.rarity] }}>{`\u00A0x:${cell.x.toString().padEnd(chars - 4, '\u00A0')}\u00A0`}</span>;
+        }
+      })}</p>
+      <p style={{ marginBottom: 0, marginTop: 0 }}>{row.map(cell => {
+        if (!cell.found) {
+          return <span>{'\u00A0'.repeat(chars)}</span>;
+        } else if (cell.open) {
+          if (cell.x === position[0] && cell.y === position[1]) {
+            return <span style={{ color: rarityColor[cell.rarity] }}>{'|' + '\u00A0'.repeat((chars - (chars % 2 ? 3 : 4)) / 2)}<span style={{ color: '#4aff47'}}>{'>'}</span>{'\u00A0'.repeat((chars - (chars % 2 ? 3 : 2)) / 2) + '|'}</span>;
+          } else {
+            return <span style={{ color: rarityColor[cell.rarity] }}>{`|y:${cell.y.toString().padEnd(chars - 4, '\u00A0')}|`}</span>;
+          }
+        } else {
+          return <span style={{ color: rarityColor[cell.rarity] }}>{`\u00A0y:${cell.y.toString().padEnd(chars - 4, '\u00A0')}\u00A0`}</span>;
+        }
+      })}</p>
+      <p style={{ marginBottom: 0, marginTop: 0 }}>{row.map(cell => {
+        if (!cell.found) {
+          return <span>{'\u00A0'.repeat(chars)}</span>;
+        } else if (cell.open) {
+          return <span style={{ color: rarityColor[cell.rarity] }}>{'+' + '-'.repeat(chars - 2) + '+'}</span>;
+        } else {
+          return <span>{'\u00A0'.repeat(chars)}</span>;
+        }
+      })}</p>
+    </div>;
   }
 
   return (
     <div>
-      <pre style={{ backgroundColor: 'black', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontFamily: 'monospace' }} dangerouslySetInnerHTML={{ __html: renderAsciiBlocks(generateDungeon()) }}>
-      </pre>
+      <div style={{ backgroundColor: 'black', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontFamily: 'monospace' }}>
+        {dungeon.map(row => renderAsciiBlocks(row))}
+      </div>
       <div style={{ color: '#4aff47', backgroundColor: 'black', position: 'absolute', bottom: '10px', right: '10px', fontFamily: 'monospace' }}>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+--------------------------------------------</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| {account}</p>
