@@ -47,6 +47,9 @@ contract DungeonEngine {
     uint public totalRooms;
     uint[4] public lastRarityAt;
 
+    // for scaling down money requirements on testnet
+    uint reducer;
+
     event NewRoom(int x, int y);
 
     constructor() {
@@ -65,6 +68,7 @@ contract DungeonEngine {
         dungeonSerialized[1] = [0, 1, 0];
         totalRooms = 4;
         lootValue = [1 ether, 2 ether, 5 ether, 10 ether, 20 ether, 50 ether, 100 ether, 200 ether, 500 ether, 1000 ether];
+        reducer = 10000; // change to 1 for mainnet
     }
 
     modifier mustBeInside {
@@ -87,7 +91,7 @@ contract DungeonEngine {
     }
 
     function enter() public payable {
-        require(msg.value >= fee, "Pay 10 ARB to enter the dungeon!");
+        require(msg.value >= fee / reducer, "Pay 10 ARB to enter the dungeon!");
         payable(creator).transfer(msg.value);
         if (!isInside[msg.sender]) {
             totalInside += 1;
@@ -126,14 +130,14 @@ contract DungeonEngine {
     }
 
     function buyKeys(uint number) public payable mustBeInside mustBeAtStart {
-        require(msg.value >= number * fee, "You have to send enough money to buy the key(s)!");
+        require(msg.value >= number * fee / reducer, "You have to send enough money to buy the key(s)!");
         userInventory[msg.sender].keys[0] += number;
     }
 
     function sellLoot() public mustBeInside mustBeAtStart {
         uint money = 0;
         for (uint8 i = 0; i < 10; i++) {
-            money += userInventory[msg.sender].loot[i] * lootValue[i];
+            money += userInventory[msg.sender].loot[i] * lootValue[i] / reducer;
             userInventory[msg.sender].loot[i] = 0;
         }
         if (money > 0) {
@@ -147,7 +151,7 @@ contract DungeonEngine {
     }
 
     function routePrice(int fromX, int fromY, int toX, int toY) public pure returns(uint) {
-        return (numDigits(fromX-toX) + numDigits(fromY-toY)) * 10_000_000_000_000_000; // 0.01 ARB per digit;
+        return (numDigits(fromX-toX) + numDigits(fromY-toY)) * 10_000_000_000_000_000 / reducer; // 0.01 ARB per digit;
     }
 
     function numDigits(int number) public pure returns (uint8) {

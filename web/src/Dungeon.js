@@ -42,6 +42,40 @@ function Dungeon() {
     setBalance(ethers.formatEther(b));
   }
 
+  const isAdjacent = (cell) => {
+    return (position[0] == cell.x && (position[1] == cell.y - 1 || position[1] == cell.y + 1)) ||
+      (position[1] == cell.y && (position[0] == cell.x - 1 || position[0] == cell.x + 1));
+  }
+
+  const hasKey = (cell) => {
+    return inventory.keys[cell.rarity] > 0;
+  }
+
+  const performAction = (cell) => {
+    if (!cell.found) {
+      return;
+    }
+    if (cell.x === 0 && cell.y === 0) {
+      if (position[0] === 0 && position[1] === 0) {
+        alert('MERCHANT');
+      } else {
+        alert('GO TO MERCHANT TO BUY AND SELL');
+      }
+    } else if (cell.open && (position[0] !== cell.x || position[0] !== cell.y)) {
+      alert("MOVE TO CELL");
+    } else if (!cell.open) {
+      if (isAdjacent(cell)) {
+        if (hasKey(cell)) {
+          alert("OPEN");
+        } else {
+          alert("NEED KEY TO OPEN");
+        }
+      } else {
+        alert("GO NEAR THE ROOM TO OPEN");
+      }
+    }
+  }
+
   function generateDungeon() {
     const { top, bottom, left, right } = dungeonLimits;
     const result = [];
@@ -76,32 +110,50 @@ function Dungeon() {
           return <span>{'\u00A0'.repeat(chars)}</span>;
         }
       })}</p>
-      <p style={{ marginBottom: 0, marginTop: 0 }}>{row.map(cell => {
-        if (!cell.found) {
-          return <span>{'\u00A0'.repeat(chars)}</span>;
-        } else if (cell.open) {
-          if (cell.x === position[0] && cell.y === position[1]) {
-            return <span style={{ color: rarityColor[cell.rarity] }}>{'|' + '\u00A0'.repeat((chars - (chars % 2 ? 3 : 4)) / 2)}<span style={{ color: '#4aff47'}}>{'o'}</span>{'\u00A0'.repeat((chars - (chars % 2 ? 3 : 2)) / 2) + '|'}</span>;
+      <p style={{ marginBottom: 0, marginTop: 0 }}>{row.map(cell =>
+        <a href="#" style={{ textDecoration: 'none' }} onClick={() => performAction(cell)}>{(() => {
+          if (cell.x === 0 && cell.y === 0) {
+            if (cell.x === position[0] && cell.y === position[1]) {
+              return <span style={{ color: rarityColor[cell.rarity] }}>{'|' + '\u00A0'.repeat((chars - (chars % 2 ? 3 : 4)) / 2)}<span style={{ color: '#4aff47' }}>o</span>{'\u00A0'.repeat((chars - (chars % 2 ? 3 : 2)) / 2 - 1)}<span style={{ color: '#ffa347' }}>o</span>|</span>;
+            } else {
+              return <span style={{ color: rarityColor[cell.rarity] }}>{`|x:${cell.x.toString().padEnd(chars - 3, '\u00A0')}`}<span style={{ color: '#ffa347' }}>o</span>|</span>;
+            }
+          } else if (!cell.found) {
+            return <span>{'\u00A0'.repeat(chars)}</span>;
+          } else if (cell.open) {
+            if (cell.x === position[0] && cell.y === position[1]) {
+              return <span style={{ color: rarityColor[cell.rarity] }}>{'|' + '\u00A0'.repeat((chars - (chars % 2 ? 3 : 4)) / 2)}<span style={{ color: '#4aff47' }}>o</span>{'\u00A0'.repeat((chars - (chars % 2 ? 3 : 2)) / 2) + '|'}</span>;
+            } else {
+              return <span style={{ color: rarityColor[cell.rarity] }}>{`|x:${cell.x.toString().padEnd(chars - 4, '\u00A0')}|`}</span>;
+            }
           } else {
-            return <span style={{ color: rarityColor[cell.rarity] }}>{`|x:${cell.x.toString().padEnd(chars - 4, '\u00A0')}|`}</span>;
+            return <span style={{ color: rarityColor[cell.rarity] }}>{`\u00A0x:${cell.x.toString().padEnd(chars - 4, '\u00A0')}\u00A0`}</span>;
           }
-        } else {
-          return <span style={{ color: rarityColor[cell.rarity] }}>{`\u00A0x:${cell.x.toString().padEnd(chars - 4, '\u00A0')}\u00A0`}</span>;
-        }
-      })}</p>
-      <p style={{ marginBottom: 0, marginTop: 0 }}>{row.map(cell => {
-        if (!cell.found) {
-          return <span>{'\u00A0'.repeat(chars)}</span>;
-        } else if (cell.open) {
-          if (cell.x === position[0] && cell.y === position[1]) {
-            return <span style={{ color: rarityColor[cell.rarity] }}>{'|' + '\u00A0'.repeat((chars - (chars % 2 ? 3 : 4)) / 2)}<span style={{ color: '#4aff47'}}>{'>'}</span>{'\u00A0'.repeat((chars - (chars % 2 ? 3 : 2)) / 2) + '|'}</span>;
+        })()}
+        </a>
+      )}</p>
+      <p style={{ marginBottom: 0, marginTop: 0 }}>{row.map(cell =>
+        <a href="#" style={{ textDecoration: 'none' }} onClick={() => performAction(cell)}>{(() => {
+          if (cell.x === 0 && cell.y === 0) {
+            if (cell.x === position[0] && cell.y === position[1]) {
+              return <span style={{ color: rarityColor[cell.rarity] }}>{'|' + '\u00A0'.repeat((chars - (chars % 2 ? 3 : 4)) / 2)}<span style={{ color: '#4aff47' }}>{'>'}</span>{'\u00A0'.repeat((chars - (chars % 2 ? 3 : 2)) / 2 - 1)}<span style={{ color: '#ffa347' }}>M</span>|</span>;
+            } else {
+              return <span style={{ color: rarityColor[cell.rarity] }}>{`|x:${cell.x.toString().padEnd(chars - 3, '\u00A0')}`}<span style={{ color: '#ffa347' }}>M</span>|</span>;
+            }
+          } else if (!cell.found) {
+            return <span>{'\u00A0'.repeat(chars)}</span>;
+          } else if (cell.open) {
+            if (cell.x === position[0] && cell.y === position[1]) {
+              return <span style={{ color: rarityColor[cell.rarity] }}>{'|' + '\u00A0'.repeat((chars - (chars % 2 ? 3 : 4)) / 2)}<span style={{ color: '#4aff47' }}>{'>'}</span>{'\u00A0'.repeat((chars - (chars % 2 ? 3 : 2)) / 2) + '|'}</span>;
+            } else {
+              return <span style={{ color: rarityColor[cell.rarity] }}>{`|y:${cell.y.toString().padEnd(chars - 4, '\u00A0')}|`}</span>;
+            }
           } else {
-            return <span style={{ color: rarityColor[cell.rarity] }}>{`|y:${cell.y.toString().padEnd(chars - 4, '\u00A0')}|`}</span>;
+            return <span style={{ color: rarityColor[cell.rarity] }}>{`\u00A0y:${cell.y.toString().padEnd(chars - 4, '\u00A0')}\u00A0`}</span>;
           }
-        } else {
-          return <span style={{ color: rarityColor[cell.rarity] }}>{`\u00A0y:${cell.y.toString().padEnd(chars - 4, '\u00A0')}\u00A0`}</span>;
-        }
-      })}</p>
+        })()}
+        </a>
+      )}</p>
       <p style={{ marginBottom: 0, marginTop: 0 }}>{row.map(cell => {
         if (!cell.found) {
           return <span>{'\u00A0'.repeat(chars)}</span>;
@@ -111,7 +163,7 @@ function Dungeon() {
           return <span>{'\u00A0'.repeat(chars)}</span>;
         }
       })}</p>
-    </div>;
+    </div >;
   }
 
   return (
