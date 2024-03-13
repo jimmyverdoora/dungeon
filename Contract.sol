@@ -24,7 +24,6 @@ contract DungeonEngine {
     }
     struct OpeningData {
         bool isOpening;
-        uint atBlock;
         int x;
         int y;
     }
@@ -43,6 +42,7 @@ contract DungeonEngine {
     mapping(address => Position) public userPosition;
     mapping(address => Inventory) userInventory;
     mapping(address => OpeningData) public opening;
+    mapping(int => mapping(int => uint)) public openingAtBlock;
     uint public totalInside;
     uint public totalRooms;
     uint[4] public lastRarityAt;
@@ -83,8 +83,8 @@ contract DungeonEngine {
     }
 
     modifier notOpening {
-        require(!opening[msg.sender].isOpening || opening[msg.sender].atBlock > block.number + 256, "You are opening a door!");
-        opening[msg.sender] = OpeningData(false, 0, 0, 0);
+        require(!opening[msg.sender].isOpening || block.number > openingAtBlock[opening[msg.sender].x][opening[msg.sender].y] + 256, "You are opening a door!");
+        opening[msg.sender] = OpeningData(false, 0, 0);
         _;
     }
 
@@ -116,25 +116,30 @@ contract DungeonEngine {
 
     function openRoom(int x, int y) public mustBeInside notOpening {
         require(isAdjacent(msg.sender, x, y), "Must be adjacent to the room!");
+        require(!dungeon[x][y].open, "Room is already open!");
+        require(dungeon[x][y].found, "Room is not discovered yet!");
+        require(block.number > openingAtBlock[x][y] + 256, "Someone else is already opening this room!");
         require(userInventory[msg.sender].keys[dungeon[x][y].rarity] > 0, "Key missing!");
         userInventory[msg.sender].keys[dungeon[x][y].rarity] -= 1;
-        opening[msg.sender] = OpeningData(true, block.number, x, y);
+        opening[msg.sender] = OpeningData(true, x, y);
+        openingAtBlock[x][y] = block.number;
     }
 
     function completeOpening() public mustBeInside {
         if (!opening[msg.sender].isOpening) {
             return;
         }
-        require(block.number >= opening[msg.sender].atBlock + 40, "Must wait 40 blocks before complete opening!");
         int x = opening[msg.sender].x;
         int y = opening[msg.sender].y;
-        if (block.number <= opening[msg.sender].atBlock + 256) {
+        require(block.number >= openingAtBlock[x][y] + 40, "Must wait 40 blocks before complete opening!");
+        if (block.number <= openingAtBlock[x][y] + 256) {
             userPosition[msg.sender] = Position(x, y);
             dungeon[x][y].open = true;
+            dungeonSerialized[y][(x-left)] = dungeonSerialized[y][(x-left)] + 4;
             _rewardUser(msg.sender, dungeon[x][y].rarity);
             _discoverVicinity(x, y, msg.sender);
         }
-        opening[msg.sender] = OpeningData(false, 0, 0, 0);
+        opening[msg.sender] = OpeningData(false, 0, 0);
     }
 
     function buyKeys(uint number) public payable mustBeInside notOpening mustBeAtStart {
@@ -176,7 +181,7 @@ contract DungeonEngine {
             payable(user).transfer(address(this).balance / 2);
             return;
         }
-        uint8 result = _randomPercentile(opening[user].atBlock, 10);
+        uint8 result = _randomPercentile(openingAtBlock[opening[msg.sender].x][opening[msg.sender].y], 10);
         if (result < 10) {
             userInventory[user].loot[3 + 3 * rarity] += 1;
         } else if (result < 30) {
@@ -186,26 +191,26 @@ contract DungeonEngine {
         } else {
             userInventory[user].loot[3 * rarity] += 1;
         }
-        if (_randomPercentile(opening[user].atBlock + 10, 10) < 10) {
+        if (_randomPercentile(openingAtBlock[opening[msg.sender].x][opening[msg.sender].y] + 10, 10) < 10) {
             userInventory[user].keys[rarity + 1] += 1;
         }
     }
 
     function _discoverVicinity(int x, int y, address user) private {
         if (!dungeon[x][y+1].found) {
-            uint8 rarity = _generateRarity(opening[user].atBlock + 20);
+            uint8 rarity = _generateRarity(openingAtBlock[x][y] + 20);
             _createRoom(x, y+1, rarity);
         }
         if (!dungeon[x][y-1].found) {
-            uint8 rarity = _generateRarity(opening[user].atBlock + 25);
+            uint8 rarity = _generateRarity(openingAtBlock[x][y] + 25);
             _createRoom(x, y-1, rarity);
         }
         if (!dungeon[x+1][y].found) {
-            uint8 rarity = _generateRarity(opening[user].atBlock + 30);
+            uint8 rarity = _generateRarity(openingAtBlock[x][y] + 30);
             _createRoom(x+1, y, rarity);
         }
         if (!dungeon[x-1][y].found) {
-            uint8 rarity = _generateRarity(opening[user].atBlock + 35);
+            uint8 rarity = _generateRarity(openingAtBlock[x][y] + 35);
             _createRoom(x-1, y, rarity);
         }
     }
@@ -219,29 +224,33 @@ contract DungeonEngine {
     function _expandSerialization(int x, int y, uint8 rarity) private {
         if (y > top) {
             top = y;
+            dungeonSerialized[y] = new uint8[](uint(right-left)+1);
         }
     
         if (y < bottom) {
             bottom = y;
+            dungeonSerialized[y] = new uint8[](uint(right-left)+1);
         }
     
         if (x > right) {
             right = x;
             for (int i = top; i >= bottom; i--) {
+                dungeonSerialized[i].push(0);
             }
         }
     
         if (x < left) {
             left = x;
             for (int i = top; i >= bottom; i--) {
-                for (int j = right; j > left; j--) {
+                dungeonSerialized[i].push(dungeonSerialized[i][uint(right-left-1)]);
+                for (int j = right-1; j > left; j--) {
                     dungeonSerialized[i][uint(j-left)] = dungeonSerialized[i][uint(j-left-1)];
                 }
                 dungeonSerialized[i][0] = 0;
             }
         }
 
-        dungeonSerialized[y][uint(x-left)] = rarity + 1; // FIX THIS
+        dungeonSerialized[y][uint(x-left)] = rarity + 1;
     }
 
     function _generateRarity(uint startBlock) private returns(uint8) {
