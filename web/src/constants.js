@@ -1,4 +1,4 @@
-export const CHAIN_ID = 421614;
-export const CONTRACT_ADDRESS = '0xC3a3eFE82d46c9424d9bcf3e2323534F3fE6C075';
-export const RPC_URL = 'https://arbitrum-sepolia.blockpi.network/v1/rpc/public';
+export const CHAIN_ID = 80001;
+export const CONTRACT_ADDRESS = '0x4A9C8c74AaEf876bABB9CBF1531D87AEDC79eEF7';
+export const RPC_URL = 'https://rpc-mumbai.polygon.technology/';
 export const ENV = 'test';

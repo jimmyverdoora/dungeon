@@ -61,6 +61,7 @@ contract DungeonEngine {
         right = 1;
         dungeon[-1][0] = Room(true, false, 0);
         dungeon[1][0] = Room(true, false, 0);
+        dungeon[0][0] = Room(true, true, 0);
         dungeon[0][1] = Room(true, false, 0);
         dungeon[0][-1] = Room(true, false, 0);
         dungeonSerialized[-1] = [0, 1, 0];
@@ -82,7 +83,8 @@ contract DungeonEngine {
     }
 
     modifier notOpening {
-        require(!opening[msg.sender].isOpening, "You are opening a door!");
+        require(!opening[msg.sender].isOpening || opening[msg.sender].atBlock > block.number + 256, "You are opening a door!");
+        opening[msg.sender] = OpeningData(false, 0, 0, 0);
         _;
     }
 
@@ -95,7 +97,7 @@ contract DungeonEngine {
     }
 
     function enter() public payable {
-        require(msg.value >= fee / reducer, "Pay 10 ARB to enter the dungeon!");
+        require(msg.value >= fee / reducer, "Pay 10 MATIC to enter the dungeon!");
         payable(creator).transfer(msg.value);
         if (!isInside[msg.sender]) {
             totalInside += 1;
@@ -157,7 +159,7 @@ contract DungeonEngine {
     }
 
     function routePrice(int fromX, int fromY, int toX, int toY) public view returns(uint) {
-        return (numDigits(fromX-toX) + numDigits(fromY-toY)) * 10_000_000_000_000_000 / reducer; // 0.01 ARB per digit;
+        return (numDigits(fromX-toX) + numDigits(fromY-toY)) * 10_000_000_000_000_000 / reducer; // 0.01 MATIC per digit;
     }
 
     function numDigits(int number) public pure returns (uint8) {
@@ -239,7 +241,7 @@ contract DungeonEngine {
             }
         }
 
-        dungeonSerialized[y][uint(x-left)] = rarity + 1;
+        dungeonSerialized[y][uint(x-left)] = rarity + 1; // FIX THIS
     }
 
     function _generateRarity(uint startBlock) private returns(uint8) {

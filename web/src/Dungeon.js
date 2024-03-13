@@ -124,8 +124,10 @@ function Dungeon() {
     const con = new w3.eth.Contract(abi, CONTRACT_ADDRESS);
     try {
       setAction('Entering dungeon...');
+      const gp = await web3.eth.getGasPrice();
       const receipt = await con.methods.enter().send({
         from: account,
+        gasPrice: Math.round(Number(gp) * 1.5).toString(),
         value: Web3.utils.toWei(fee, 'finney')
       });
       console.log(receipt);
@@ -142,8 +144,10 @@ function Dungeon() {
     try {
       setAction(`Moving to ${x}x ${y}y...`);
       const price = await con.methods.routePrice(position[0], position[1], x, y).call();
+      const gp = await web3.eth.getGasPrice();
       const receipt = await con.methods.move(x, y).send({
         from: account,
+        gasPrice: Math.round(Number(gp) * 1.5).toString(),
         value: price
       });
       console.log(receipt);
@@ -160,7 +164,9 @@ function Dungeon() {
     const con = new w3.eth.Contract(abi, CONTRACT_ADDRESS);
     try {
       setAction('Selling loot...');
+      const gp = await web3.eth.getGasPrice();
       const receipt = await con.methods.sellLoot().send({
+        gasPrice: Math.round(Number(gp) * 1.5).toString(),
         from: account
       });
       console.log(receipt);
@@ -177,8 +183,10 @@ function Dungeon() {
     const con = new w3.eth.Contract(abi, CONTRACT_ADDRESS);
     try {
       setAction('Buying key(s)...');
+      const gp = await web3.eth.getGasPrice();
       const receipt = await con.methods.buyKeys(num).send({
         from: account,
+        gasPrice: Math.round(Number(gp) * 1.5).toString(),
         value: Web3.utils.toWei(num * fee, 'finney')
       });
       console.log(receipt);
@@ -197,7 +205,9 @@ function Dungeon() {
     const con = new w3.eth.Contract(abi, CONTRACT_ADDRESS);
     try {
       setAction(`Initiating opening of ${x}x ${y}y...`);
+      let gp = await web3.eth.getGasPrice();
       const receipt = await con.methods.openRoom(x, y).send({
+        gasPrice: Math.round(Number(gp) * 1.5).toString(),
         from: account
       });
       console.log(receipt);
@@ -214,7 +224,9 @@ function Dungeon() {
         currentBlock = await w3.eth.getBlockNumber();
       }
       setAction(`Sending opening confirmation of ${x}x ${y}y...`);
+      gp = await web3.eth.getGasPrice();
       const rec2 = await con.methods.completeOpening().send({
+        gasPrice: Math.round(Number(gp) * 1.5).toString(),
         from: account
       });
       console.log(rec2);
@@ -348,9 +360,9 @@ function Dungeon() {
         <p style={{ marginBottom: 0, marginTop: 0 }}>| will need to submit 2 transactions which are mined less than 256{'\u00A0'.repeat(4)}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| and more than 40 blocks apart. The dapp will take care of that, you{'\u00A0'}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| just need to do the following: send the 1st transaction. After 40{'\u00A0'.repeat(3)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| blocks (roughly 10 seconds), the metamask pop up will show up again{'\u00A0'}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| blocks (roughly 2 minutes), the metamask pop up will show up again{'\u00A0'}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| asking you to sign and send the 2nd one. You have to send it as{'\u00A0'.repeat(5)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| soon as possible (ideally within 30 seconds should be enough but{'\u00A0'.repeat(4)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| soon as possible (ideally within a minute should be enough but{'\u00A0'.repeat(4)}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| just sign and send as soon as it pops up).{'\u00A0'.repeat(26)}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| <span style={{color: '#ffa347'}}>TLDR</span>: click below to send the 1st transaction. As soon as you see{'\u00A0'.repeat(3)}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>|{'\u00A0'.repeat(7)}the pop up with the 2nd transaction, sign and send it as well |</p>
@@ -358,13 +370,13 @@ function Dungeon() {
         <p style={{ marginBottom: 0, marginTop: 0 }}>+---------------------------------------------------------------------+</p>
       </div>}
       <div style={{ color: rarityColor[3], backgroundColor: 'black', position: 'absolute', top: '10px', right: '10px', fontFamily: 'monospace' }}>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| CURRENT DIAMOND DROP: {diamondValue} ARB</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>+----------------------------{'-'.repeat(diamondValue.toString().length)}</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| CURRENT DIAMOND DROP: {diamondValue} MATIC</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+------------------------------{'-'.repeat(diamondValue.toString().length)}</p>
       </div>
       <div style={{ color: '#4aff47', backgroundColor: 'black', position: 'absolute', bottom: '10px', right: '10px', fontFamily: 'monospace' }}>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+--------------------------------------------</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| {account}</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| Balance: {balance} ARB</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| Balance: {balance} MATIC</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| Position: {position ? `${position[0]}x ${position[1]}y` : 'OUTSIDE'}</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+--------------------------------------------</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| Keys: {[0, 1, 2, 3].map(n => (<span style={{ color: rarityColor[n] }}> {inventory.keys[n]} </span>))}</p>
