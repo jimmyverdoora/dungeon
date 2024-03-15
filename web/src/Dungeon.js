@@ -29,6 +29,9 @@ function Dungeon() {
   const web3 = new Web3(RPC_URL);
   const contract = new web3.eth.Contract(abi, CONTRACT_ADDRESS);
 
+  const [view, setView] = useState({ top: '50%', left: '50%' });
+  const step = 50;
+
   const [position, setPosition] = useState(null);
   const [showShop, setShowShop] = useState(false);
   const [action, setAction] = useState(null);
@@ -37,8 +40,11 @@ function Dungeon() {
   const [balance, setBalance] = useState(0);
   const [inventory, setInventory] = useState({ keys: [0, 0, 0, 0], loot: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] });
   const [diamondValue, setDiamondValue] = useState(0);
-  const [dungeon, setDungeon] = useState([[{ found: true, open: true, x: 0, y: 0, rarity: 0 }]]);
-
+  const [dungeon, setDungeon] = useState([
+    [{ found: false, open: false, x: -1, y: 1 }, { found: true, open: false, x: 0, y: 1, rarity: 0 }, { found: false, open: false, x: 1, y: 1 }],
+    [{ found: true, open: false, x: -1, y: 0, rarity: 0 }, { found: true, open: true, x: 0, y: 0, rarity: 0 }, { found: true, open: false, x: 1, y: 0, rarity: 0 }],
+    [{ found: false, open: false, x: -1, y: -1 }, { found: true, open: false, x: 0, y: -1, rarity: 0 }, { found: false, open: false, x: 1, y: -1 }]
+  ]);
   const totalLootValue = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => inventory.loot[n] * lootValue[n]).reduce((a, b) => a + b, 0);
 
   useEffect(() => {
@@ -46,6 +52,7 @@ function Dungeon() {
   }, []);
 
   const loadInfo = async (atStart = false) => {
+    setAction("Loading...");
     await new Promise(r => setTimeout(r, 1000));
     const b = await ethereum.request({ method: 'eth_getBalance', params: [account] });
     setBalance(ethers.formatEther(b));
@@ -58,9 +65,17 @@ function Dungeon() {
       right: Number(await contract.methods.right().call()),
     };
     const ser = [];
+    const padLeft = Math.max(20 + newLimits.left, 0);
+    const padRight = Math.max(20 - newLimits.right, 0);
+    for (let i = 0; i < 20 - newLimits.top; i++) {
+      ser.push(new Array(newLimits.right - newLimits.left + 1 + padLeft + padRight).fill(0));
+    }
     for (let idx = newLimits.top; idx >= newLimits.bottom; idx--) {
       const row = await contract.methods.getDungeonRow(idx).call();
-      ser.push(row.map(num => Number(num)));
+      ser.push(new Array(padLeft).fill(0).concat(row.map(num => Number(num))).concat(new Array(padRight).fill(0)));
+    }
+    for (let i = 0; i < 20 + newLimits.bottom; i++) {
+      ser.push(new Array(newLimits.right - newLimits.left + 1 + padLeft + padRight).fill(0));
     }
     setDungeon(generateDungeon(ser, newLimits));
     const isInside = await contract.methods.isInside(account).call();
@@ -72,10 +87,40 @@ function Dungeon() {
         const newLoot = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].filter(i => Number(inv.loot[i]) > inventory.loot[i])[0];
         const newKey = [0, 1, 2, 3].filter(i => Number(inv.keys[i]) > inventory.keys[i])[0];
         if (newLoot) {
-          setInfo(`You found a ${lootName[newLoot]}${newKey ? ` and a ${rarityName[newKey]} key` : ""}}!`)
+          setInfo(`You found a ${lootName[newLoot]}${newKey ? ` and a ${rarityName[newKey]} key` : ""}!`)
         }
       }
       setInventory({ keys: inv.keys.map(k => Number(k)), loot: inv.loot.map(k => Number(k)) });
+    }
+    setAction(null);
+    const isOpening = await contract.methods.opening(account).call();
+    if (!isOpening.isOpening) {
+      return;
+    }
+    const openingAtBlock = Number(await contract.methods.openingAtBlock(isOpening.x, isOpening.y).call());
+    let currentBlock = Number(await web3.eth.getBlockNumber());
+    if (currentBlock >= openingAtBlock + 256) {
+      return;
+    }
+    while (currentBlock - openingAtBlock <= 41) {
+      setAction(`Get ready to send next tx in ${openingAtBlock + 41 - currentBlock} blocks...`);
+      await new Promise(r => setTimeout(r, 1000));
+      currentBlock = Number(await web3.eth.getBlockNumber());
+    }
+    setAction(`Sending opening confirmation of ${isOpening.x}x ${isOpening.y}y...`);
+    try {
+      const gp = await web3.eth.getGasPrice();
+      const w3 = new Web3(ethereum);
+      const con = new w3.eth.Contract(abi, CONTRACT_ADDRESS);
+      const rec2 = await con.methods.completeOpening().send({
+        gasPrice: Math.round(Number(gp) * 1.5).toString(),
+        from: account
+      });
+      console.log(rec2);
+      loadInfo();
+    } catch (e) {
+      console.error(e);
+      setAction(null);
     }
   }
 
@@ -134,8 +179,8 @@ function Dungeon() {
       loadInfo();
     } catch (e) {
       console.error(e);
+      setAction(null);
     }
-    setAction(null);
   }
 
   async function move(x, y) {
@@ -154,8 +199,8 @@ function Dungeon() {
       loadInfo();
     } catch (e) {
       console.error(e);
+      setAction(null);
     }
-    setAction(null);
   }
 
   async function sellLoot() {
@@ -173,8 +218,8 @@ function Dungeon() {
       loadInfo();
     } catch (e) {
       console.error(e);
+      setAction(null);
     }
-    setAction(null);
   }
 
   async function buyKey(num) {
@@ -193,8 +238,8 @@ function Dungeon() {
       loadInfo();
     } catch (e) {
       console.error(e);
+      setAction(null);
     }
-    setAction(null);
   }
 
   async function startDoorOpening() {
@@ -214,14 +259,16 @@ function Dungeon() {
       let blockNumber = null;
       while (!blockNumber) {
         await new Promise(r => setTimeout(r, 1000));
-        const tx = await w3.eth.getTransaction(receipt.transactionHash);
+        const tx = await web3.eth.getTransaction(receipt.transactionHash);
         blockNumber = tx.blockNumber;
       }
+      blockNumber = Number(blockNumber);
       console.log('tx mined at block ' + blockNumber);
-      let currentBlock = await w3.eth.getBlockNumber();
-      while (currentBlock - blockNumber <= 40) {
+      let currentBlock = Number(await web3.eth.getBlockNumber());
+      while (currentBlock - blockNumber <= 41) {
+        setAction(`Get ready to send next tx in ${blockNumber + 41 - currentBlock} blocks...`);
         await new Promise(r => setTimeout(r, 1000));
-        currentBlock = await w3.eth.getBlockNumber();
+        currentBlock = Number(await web3.eth.getBlockNumber());
       }
       setAction(`Sending opening confirmation of ${x}x ${y}y...`);
       gp = await web3.eth.getGasPrice();
@@ -233,12 +280,16 @@ function Dungeon() {
       loadInfo();
     } catch (e) {
       console.error(e);
+      setAction(null);
     }
-    setAction(null);
   }
 
   function generateDungeon(serializedDungeon, dungeonLimits) {
-    const { top, bottom, left, right } = dungeonLimits;
+    let { top, bottom, left, right } = dungeonLimits;
+    top = Math.max(top, 20);
+    bottom = Math.min(bottom, -20);
+    right = Math.max(right, 20);
+    left = Math.min(left, - 20);
     const result = [];
     for (let i = 0; i <= top - bottom; i++) {
       const row = [];
@@ -326,9 +377,32 @@ function Dungeon() {
     </div >;
   }
 
+  function moveView(direction) {
+    setView(prevPosition => {
+      let { top, left } = prevPosition;
+      switch (direction) {
+        case 'up':
+          top = `calc(${top} - ${step}px)`;
+          break;
+        case 'down':
+          top = `calc(${top} + ${step}px)`;
+          break;
+        case 'left':
+          left = `calc(${left} - ${step}px)`;
+          break;
+        case 'right':
+          left = `calc(${left} + ${step}px)`;
+          break;
+        default:
+          return prevPosition;
+      }
+      return { top, left };
+    });
+  }
+
   return (
     <div>
-      <div style={{ backgroundColor: 'black', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontFamily: 'monospace' }}>
+      <div style={{ backgroundColor: 'black', position: 'absolute', ...view, transform: 'translate(-50%, -50%)', fontFamily: 'monospace' }}>
         {dungeon.map(row => renderAsciiBlocks(row))}
       </div>
       {showShop && <div style={{ zIndex: 1, color: '#4aff47', backgroundColor: 'black', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontFamily: 'monospace' }}>
@@ -346,25 +420,25 @@ function Dungeon() {
       {info && <div style={{ zIndex: 1, color: '#ff2222', backgroundColor: 'black', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontFamily: 'monospace' }}>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+-{'-'.repeat(info.length)}-+</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| {info} |</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#ff2222' }} onClick={() => setInfo(null)}>Close</a>{'\u00A0'.repeat(info.length - 4)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#ffa347' }} onClick={() => setInfo(null)}>CLOSE</a>{'\u00A0'.repeat(info.length - 4)}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+-{'-'.repeat(info.length)}-+</p>
       </div>}
       {showOpen && <div style={{ zIndex: 1, color: '#ff2222', backgroundColor: 'black', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontFamily: 'monospace' }}>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+---------------------------------------------------------------------+</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| <span style={{ color: '#ffa347' }}>WARNING! READ EXTREMELY CAREFULLY!!!!!</span>{'\u00A0'.repeat(30)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| You are about to open cell {showOpen[0]}x {showOpen[1]}y.{'\u00A0'.repeat(3)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| You are about to open cell {showOpen[0]}x {showOpen[1]}y.{'\u00A0'.repeat(37 - showOpen[0].toString().length - showOpen[1].toString().length)}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| To grant a tamper-resistant randomness algorithm the contract uses{'\u00A0'.repeat(2)}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| multiple calls of the blockhash function. Unfortunately, block{'\u00A0'.repeat(6)}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| hashes older than 256 blocks are not accessible. To open a door you{'\u00A0'}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| will need to submit 2 transactions which are mined less than 256{'\u00A0'.repeat(4)}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| and more than 40 blocks apart. The dapp will take care of that, you{'\u00A0'}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| just need to do the following: send the 1st transaction. After 40{'\u00A0'.repeat(3)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| blocks (roughly 2 minutes), the metamask pop up will show up again{'\u00A0'}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| blocks (roughly 2 minutes), the metamask pop up will show up again{'\u00A0'.repeat(2)}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| asking you to sign and send the 2nd one. You have to send it as{'\u00A0'.repeat(5)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| soon as possible (ideally within a minute should be enough but{'\u00A0'.repeat(4)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| soon as possible (ideally within a minute should be enough but{'\u00A0'.repeat(6)}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| just sign and send as soon as it pops up).{'\u00A0'.repeat(26)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| <span style={{ color: '#ffa347' }}>TLDR</span>: click below to send the 1st transaction. As soon as you see{'\u00A0'.repeat(3)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>|{'\u00A0'.repeat(7)}the pop up with the 2nd transaction, sign and send it as well |</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| <span style={{ color: '#ffa347' }}>TLDR</span> click below to send the 1st transaction. As soon as you see{'\u00A0'.repeat(4)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>|{'\u00A0'.repeat(6)}the pop up with the 2nd transaction, sign and send it as well. |</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#ffa347' }} onClick={() => startDoorOpening()}>I UNDERSTAND, LET'S OPEN THIS DOOR!</a>{'\u00A0'.repeat(27)}<a href="#" style={{ textDecoration: 'none', color: '#ffa347' }} onClick={() => setShowOpen(null)}>CLOSE</a> |</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+---------------------------------------------------------------------+</p>
       </div>}
@@ -385,6 +459,26 @@ function Dungeon() {
         )}
         <p style={{ marginBottom: 0, marginTop: 0 }}>+--------------------------------------------</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| Total loot value: {totalLootValue} MATIC</p>
+      </div>
+      <div style={{ color: '#4aff47', backgroundColor: 'black', position: 'absolute', bottom: '10px', right: '50%', fontFamily: 'monospace' }}>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+----+</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#4aff47' }} onClick={() => moveView('up')}>\/</a> |</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+----+</p>
+      </div>
+      <div style={{ color: '#4aff47', backgroundColor: 'black', position: 'absolute', top: '10px', right: '50%', fontFamily: 'monospace' }}>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+----+</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#4aff47' }} onClick={() => moveView('down')}>/\</a> |</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+----+</p>
+      </div>
+      <div style={{ color: '#4aff47', backgroundColor: 'black', position: 'absolute', top: '50%', right: '10px', fontFamily: 'monospace' }}>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+---+</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#4aff47' }} onClick={() => moveView('left')}>{'>'}</a> |</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+---+</p>
+      </div>
+      <div style={{ color: '#4aff47', backgroundColor: 'black', position: 'absolute', top: '50%', left: '10px', fontFamily: 'monospace' }}>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+---+</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#4aff47' }} onClick={() => moveView('right')}>{'<'}</a> |</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+---+</p>
       </div>
     </div>
   );

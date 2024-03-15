@@ -51,6 +51,8 @@ contract DungeonEngine {
     uint reducer;
 
     event NewRoom(int x, int y);
+    event RandomNumber(uint8 n);
+    event KeyFound(address user, uint8 rarity);
 
     constructor() {
         creator = msg.sender;
@@ -135,7 +137,7 @@ contract DungeonEngine {
         if (block.number <= openingAtBlock[x][y] + 256) {
             userPosition[msg.sender] = Position(x, y);
             dungeon[x][y].open = true;
-            dungeonSerialized[y][(x-left)] = dungeonSerialized[y][(x-left)] + 4;
+            dungeonSerialized[y][uint(x-left)] = dungeonSerialized[y][uint(x-left)] + 4;
             _rewardUser(msg.sender, dungeon[x][y].rarity);
             _discoverVicinity(x, y, msg.sender);
         }
@@ -181,7 +183,7 @@ contract DungeonEngine {
             payable(user).transfer(address(this).balance / 2);
             return;
         }
-        uint8 result = _randomPercentile(openingAtBlock[opening[msg.sender].x][opening[msg.sender].y], 10);
+        uint8 result = _randomPercentile(openingAtBlock[opening[user].x][opening[user].y], 10);
         if (result < 10) {
             userInventory[user].loot[3 + 3 * rarity] += 1;
         } else if (result < 30) {
@@ -191,8 +193,9 @@ contract DungeonEngine {
         } else {
             userInventory[user].loot[3 * rarity] += 1;
         }
-        if (_randomPercentile(openingAtBlock[opening[msg.sender].x][opening[msg.sender].y] + 10, 10) < 10) {
+        if (_randomPercentile(openingAtBlock[opening[user].x][opening[user].y] + 10, 10) < 10) {
             userInventory[user].keys[rarity + 1] += 1;
+            emit KeyFound(user, rarity + 1);
         }
     }
 
@@ -291,6 +294,8 @@ contract DungeonEngine {
             b = bytes.concat(b, blockhash(startBlock + i));
         }
         uint256 result = uint256(keccak256(b));
-        return uint8(result % 100);
+        uint8 result = uint8(result % 100);
+        emit RandomNumber(result);
+        return result;
     }
 }
