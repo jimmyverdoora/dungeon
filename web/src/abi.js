@@ -4,6 +4,25 @@ const abi = [
 		"inputs": [
 			{
 				"indexed": false,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint8",
+				"name": "rarity",
+				"type": "uint8"
+			}
+		],
+		"name": "KeyFound",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
 				"internalType": "int256",
 				"name": "x",
 				"type": "int256"
@@ -16,6 +35,44 @@ const abi = [
 			}
 		],
 		"name": "NewRoom",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint8",
+				"name": "n",
+				"type": "uint8"
+			}
+		],
+		"name": "RandomNumber",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "int256",
+				"name": "x",
+				"type": "int256"
+			},
+			{
+				"indexed": false,
+				"internalType": "int256",
+				"name": "y",
+				"type": "int256"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "opener",
+				"type": "address"
+			}
+		],
+		"name": "RoomOpened",
 		"type": "event"
 	},
 	{
@@ -161,6 +218,11 @@ const abi = [
 				"internalType": "uint8",
 				"name": "rarity",
 				"type": "uint8"
+			},
+			{
+				"internalType": "address",
+				"name": "opener",
+				"type": "address"
 			}
 		],
 		"stateMutability": "view",

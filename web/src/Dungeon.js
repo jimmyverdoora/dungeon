@@ -32,6 +32,10 @@ function Dungeon() {
   const [view, setView] = useState({ top: '50%', left: '50%' });
   const step = 50;
 
+  const [totInside, setTotInside] = useState(0);
+  const [totRooms, setTotRooms] = useState(0);
+  const [news, setNews] = useState("");
+  const [newsAt, setNewsAt] = useState(Date.now());
   const [position, setPosition] = useState(null);
   const [showShop, setShowShop] = useState(false);
   const [action, setAction] = useState(null);
@@ -51,6 +55,30 @@ function Dungeon() {
     loadInfo(true);
   }, []);
 
+  // useEffect(() => {
+  //   let listener;
+  
+  //   const setupListener = async () => {
+  //     const web3ws = new Web3(RPC_URL_WS);
+  
+  //     const currentBlock = await web3ws.eth.getBlockNumber();
+  //     const wsContract = new web3ws.eth.Contract(abi, CONTRACT_ADDRESS);
+  //     listener = wsContract.events.RoomOpened({ fromBlock: currentBlock });
+  
+  //     listener.on("data", (event) => {
+  //       console.log(event.returnValues);
+  //     });
+  //   };
+  
+  //   setupListener();
+  
+  //   return () => {
+  //     if (listener) {
+  //       listener.unsubscribe();
+  //     }
+  //   };
+  // }, []);
+
   const loadInfo = async (atStart = false) => {
     setAction("Loading...");
     await new Promise(r => setTimeout(r, 1000));
@@ -58,6 +86,10 @@ function Dungeon() {
     setBalance(ethers.formatEther(b));
     const cb = await web3.eth.getBalance(CONTRACT_ADDRESS);
     setDiamondValue((Number(Web3.utils.fromWei(cb.toString(), 'finney')) / 2000).toFixed(2));
+    const ti = await contract.methods.totalInside().call();
+    setTotInside(Number(ti));
+    const tr = await contract.methods.totalRooms().call();
+    setTotRooms(Number(tr));
     const newLimits = {
       top: Number(await contract.methods.top().call()),
       bottom: Number(await contract.methods.bottom().call()),
@@ -400,6 +432,8 @@ function Dungeon() {
     });
   }
 
+  const topLeftPad = Math.max(totInside.toString().length + 17, totRooms.toString().length + 16, news.length + 2);
+
   return (
     <div>
       <div style={{ backgroundColor: 'black', position: 'absolute', ...view, transform: 'translate(-50%, -50%)', fontFamily: 'monospace' }}>
@@ -442,6 +476,12 @@ function Dungeon() {
         <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#ffa347' }} onClick={() => startDoorOpening()}>I UNDERSTAND, LET'S OPEN THIS DOOR!</a>{'\u00A0'.repeat(27)}<a href="#" style={{ textDecoration: 'none', color: '#ffa347' }} onClick={() => setShowOpen(null)}>CLOSE</a> |</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+---------------------------------------------------------------------+</p>
       </div>}
+      <div style={{ color: '#4aff47', backgroundColor: 'black', position: 'absolute', top: '10px', left: '10px', fontFamily: 'monospace' }}>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>{'\u00A0'}DEGENS INSIDE: {totInside}{'\u00A0'.repeat(Math.max(1, topLeftPad - totInside.toString().length - 16))}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>{'\u00A0'}ROOMS OPENED: {totRooms}{'\u00A0'.repeat(Math.max(1, topLeftPad - totRooms.toString().length - 15))}|</p>
+        {news && <p style={{ marginBottom: 0, marginTop: 0 }}>{'\u00A0'}{news} |</p>}
+        <p style={{ marginBottom: 0, marginTop: 0 }}>{'-'.repeat(topLeftPad)}+</p>
+      </div>
       <div style={{ color: rarityColor[3], backgroundColor: 'black', position: 'absolute', top: '10px', right: '10px', fontFamily: 'monospace' }}>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| CURRENT DIAMOND DROP: {diamondValue} MATIC</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+------------------------------{'-'.repeat(diamondValue.toString().length)}</p>

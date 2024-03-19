@@ -13,6 +13,7 @@ contract DungeonEngine {
         bool found;
         bool open;
         uint8 rarity;
+        address opener;
     }
     struct Position {
         int x;
@@ -52,6 +53,7 @@ contract DungeonEngine {
 
     event NewRoom(int x, int y);
     event RandomNumber(uint8 n);
+    event RoomOpened(int x, int y, address opener);
     event KeyFound(address user, uint8 rarity);
 
     constructor() {
@@ -61,11 +63,11 @@ contract DungeonEngine {
         bottom = -1;
         left = -1;
         right = 1;
-        dungeon[-1][0] = Room(true, false, 0);
-        dungeon[1][0] = Room(true, false, 0);
-        dungeon[0][0] = Room(true, true, 0);
-        dungeon[0][1] = Room(true, false, 0);
-        dungeon[0][-1] = Room(true, false, 0);
+        dungeon[-1][0] = Room(true, false, 0, address(0x00));
+        dungeon[1][0] = Room(true, false, 0, address(0x00));
+        dungeon[0][0] = Room(true, true, 0, address(0x00));
+        dungeon[0][1] = Room(true, false, 0, address(0x00));
+        dungeon[0][-1] = Room(true, false, 0, address(0x00));
         dungeonSerialized[-1] = [0, 1, 0];
         dungeonSerialized[0] = [1, 5, 1];
         dungeonSerialized[1] = [0, 1, 0];
@@ -137,6 +139,8 @@ contract DungeonEngine {
         if (block.number <= openingAtBlock[x][y] + 256) {
             userPosition[msg.sender] = Position(x, y);
             dungeon[x][y].open = true;
+            dungeon[x][y].opener = msg.sender;
+            emit RoomOpened(x, y, msg.sender);
             dungeonSerialized[y][uint(x-left)] = dungeonSerialized[y][uint(x-left)] + 4;
             _rewardUser(msg.sender, dungeon[x][y].rarity);
             _discoverVicinity(x, y, msg.sender);
@@ -219,7 +223,7 @@ contract DungeonEngine {
     }
 
     function _createRoom(int x, int y, uint8 rarity) private {
-        dungeon[x][y] = Room(true, false, rarity);
+        dungeon[x][y] = Room(true, false, rarity, address(0x00));
         _expandSerialization(x, y, rarity);
         emit NewRoom(x, y);
     }
@@ -288,13 +292,13 @@ contract DungeonEngine {
         return res >= 0 ? uint8(uint(res)) : 0;
     }
 
-    function _randomPercentile(uint startBlock, uint8 len) private view returns(uint8) {
+    function _randomPercentile(uint startBlock, uint8 len) private returns(uint8) {
         bytes memory b;
         for (uint8 i = 0; i < len; i++) {
             b = bytes.concat(b, blockhash(startBlock + i));
         }
-        uint256 result = uint256(keccak256(b));
-        uint8 result = uint8(result % 100);
+        uint256 preResult = uint256(keccak256(b));
+        uint8 result = uint8(preResult % 100);
         emit RandomNumber(result);
         return result;
     }
