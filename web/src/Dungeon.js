@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useMetaMask } from "metamask-react";
-import { ethers } from 'ethers';
 import Web3 from 'web3';
-import abi from './abi';
-import { CONTRACT_ADDRESS, RPC_URL, ENV, CHAIN_ID } from './constants';
+import abi from './abi/dungeon';
+import { CONTRACT_ADDRESS, RPC_URL, ENV } from './constants';
 
-const fee = ENV == 'production' ? 10000 : 1; // finney
+const fee = ENV == 'production' ? 11000 : 2; // finney
 const rarityColor = ['#ad846a', '#b0b0b0', '#ffc247', '#47fffc', '#fc4521'];
 const rarityName = ['wood', 'iron', 'golden', 'diamond', 'mythic'];
 const lootName = [
   "ByBit referral code",
+  "Cryptopunk JPEG",
   "Cardano holder plate",
   "Pepe bone",
   "Shiba tail",
@@ -20,7 +20,7 @@ const lootName = [
   "Sam Bankman-Fried cell key",
   "Satoshi Nakamoto picture"
 ];
-const lootValue = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];
+const lootValue = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2500];
 
 // React component to render dungeon map
 function Dungeon() {
@@ -43,7 +43,7 @@ function Dungeon() {
   const [info, setInfo] = useState(null);
   const [showOpen, setShowOpen] = useState(null);
   const [balance, setBalance] = useState(0);
-  const [inventory, setInventory] = useState({ keys: [0, 0, 0, 0], loot: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] });
+  const [inventory, setInventory] = useState({ keys: [0, 0, 0, 0, 0], loot: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] });
   const [diamondValue, setDiamondValue] = useState(0);
   const [dungeon, setDungeon] = useState([
     [{ found: false, open: false, x: -1, y: 1 }, { found: true, open: false, x: 0, y: 1, rarity: 0 }, { found: false, open: false, x: 1, y: 1 }],
@@ -58,21 +58,21 @@ function Dungeon() {
 
   // useEffect(() => {
   //   let listener;
-  
+
   //   const setupListener = async () => {
   //     const web3ws = new Web3(RPC_URL_WS);
-  
+
   //     const currentBlock = await web3ws.eth.getBlockNumber();
   //     const wsContract = new web3ws.eth.Contract(abi, CONTRACT_ADDRESS);
   //     listener = wsContract.events.RoomOpened({ fromBlock: currentBlock });
-  
+
   //     listener.on("data", (event) => {
   //       console.log(event.returnValues);
   //     });
   //   };
-  
+
   //   setupListener();
-  
+
   //   return () => {
   //     if (listener) {
   //       listener.unsubscribe();
@@ -83,8 +83,8 @@ function Dungeon() {
   const loadInfo = async (atStart = false) => {
     setAction("Loading...");
     await new Promise(r => setTimeout(r, 1000));
-    const b = await ethereum.request({ method: 'eth_getBalance', params: [account] });
-    setBalance(ethers.formatEther(b));
+    const b = await web3.eth.getBalance(account);
+    setBalance((Number(Web3.utils.fromWei(b.toString(), 'ether'))).toFixed(8));
     const cb = await web3.eth.getBalance(CONTRACT_ADDRESS);
     setDiamondValue((Number(Web3.utils.fromWei(cb.toString(), 'finney')) / 2000).toFixed(2));
     const ti = await contract.methods.totalInside().call();
@@ -116,9 +116,10 @@ function Dungeon() {
       const p = await contract.methods.userPosition(account).call();
       setPosition([Number(p.x), Number(p.y)]);
       const inv = await contract.methods.getInventory(account).call();
+      console.log(inv)
       if (!atStart) {
-        const newLoot = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].filter(i => Number(inv.loot[i]) > inventory.loot[i])[0];
-        const newKey = [0, 1, 2, 3].filter(i => Number(inv.keys[i]) > inventory.keys[i])[0];
+        const newLoot = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter(i => Number(inv.loot[i]) > inventory.loot[i])[0];
+        const newKey = [0, 1, 2, 3, 4].filter(i => Number(inv.keys[i]) > inventory.keys[i])[0];
         if (newLoot) {
           setInfo(`You found a ${lootName[newLoot]}${newKey ? ` and a ${rarityName[newKey]} key` : ""}!`)
         }
@@ -206,7 +207,6 @@ function Dungeon() {
       const receipt = await con.methods.enter().send({
         from: account,
         gasPrice: Math.round(Number(gp) * 1.5).toString(),
-        value: Web3.utils.toWei(fee, 'finney')
       });
       console.log(receipt);
       loadInfo();
@@ -331,9 +331,13 @@ function Dungeon() {
         const y = top - i;
         const x = j + left;
         if (code == 0) {
-          row.push({ found: false, x, y });
+          if (Math.abs(x) == 10 && Math.abs(y) == 10) {
+            row.push({ found: true, open: false, x, y, rarity: 4 });
+          } else {
+            row.push({ found: false, x, y });
+          }
         } else {
-          row.push({ found: true, open: code > 4, rarity: (code - 1) % 4, x, y });
+          row.push({ found: true, open: code > 5, rarity: (code - 1) % 5, x, y });
         }
       }
       result.push(row);
@@ -493,9 +497,9 @@ function Dungeon() {
         <p style={{ marginBottom: 0, marginTop: 0 }}>| Balance: {balance} MATIC</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| Position: {position ? `${position[0]}x ${position[1]}y` : 'OUTSIDE'}</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+--------------------------------------------</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| Keys: {[0, 1, 2, 3].map(n => (<span style={{ color: rarityColor[n] }}> {inventory.keys[n]} </span>))}</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| Keys: {[0, 1, 2, 3, 4].map(n => (<span style={{ color: rarityColor[n] }}> {inventory.keys[n]} </span>))}</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+--------------------------------------------</p>
-        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(n =>
+        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n =>
           <p style={{ marginBottom: 0, marginTop: 0 }}>| {lootName[n]}: {inventory.loot[n]}</p>
         )}
         <p style={{ marginBottom: 0, marginTop: 0 }}>+--------------------------------------------</p>

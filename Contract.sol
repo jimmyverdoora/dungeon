@@ -90,7 +90,7 @@ contract DungeonEngine {
             200 ether,
             500 ether,
             1000 ether,
-            2500 ether,
+            2500 ether
         ];
         if (_isTestnet) {
             reducer = 10000;
@@ -186,7 +186,7 @@ contract DungeonEngine {
                 dungeonSerialized[y][uint(x - left)] +
                 5;
             if (dungeon[x][y].rarity == 4) {
-                _checkEndGame()
+                _checkEndGame();
             } else {
                 _rewardUser(msg.sender, dungeon[x][y].rarity);
             }

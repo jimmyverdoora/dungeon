@@ -140,7 +140,7 @@ contract DungeonToken is IERC20 {
 
     uint256 private _icoEnd;
 
-    constructor(uint256 _ts, address _icoAddress, uint256 _ie) {
+    constructor(uint256 _ts, address _icoAddress, address _devsWallet, uint256 _ie) {
         _totalSupply = _ts;
         _icoEnd = _ie;
         _balances[address(this)] = 5 * _ts / 10;
@@ -217,26 +217,28 @@ contract DungeonToken is IERC20 {
     }
 
     function buy() icoOver public payable returns (bool) {
-        uint256 eth = address(this).balance;
+        uint256 newEth = address(this).balance;
+        uint256 oldEth = uint256(newEth - msg.value);
         uint256 dung = _balances[address(this)];
-        uint256 currentK = eth.mul(dung);
+        uint256 currentK = oldEth.mul(dung);
         _transfer(
             address(this),
             msg.sender,
-            dung.sub(currentK.div(eth.add(value)))
+            dung.sub(currentK.div(newEth))
         );
         return true;
     }
 
-    function sell() icoOver public returns (bool) {
+    function sell(uint256 value) icoOver public returns (bool) {
         uint256 eth = address(this).balance;
         uint256 dung = _balances[address(this)];
         uint256 currentK = eth.mul(dung);
         _transfer(
             msg.sender,
             address(this),
-            eth.sub(currentK.div(dung.add(value)))
+            value
         );
+        payable(msg.sender).transfer(eth.sub(currentK.div(dung.add(value))));
         return true;
     }
 

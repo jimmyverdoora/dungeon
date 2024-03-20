@@ -88,11 +88,13 @@ interface IERC20 {
 contract ICO {
 
     IERC20 public token;
+    uint256 public icoEnd;
 
     mapping(address => uint256) private contribution;
     address[] private contributors;
 
-    constructor() {
+    constructor(uint256 _icoEnd) {
+        icoEnd = _icoEnd;
         token = IERC20(address(0x00));
     }
 
@@ -102,7 +104,7 @@ contract ICO {
         }
     }
 
-    function buy() payable {
+    function buy() public payable {
         require(msg.value > 0, "Pay something!");
         if (contribution[msg.sender] == 0) {
             contributors.push(msg.sender);
@@ -115,10 +117,10 @@ contract ICO {
     }
 
     function redeem() public {
-        require(block.number < token.icoEnd(), "ICO not ended!");
+        require(block.number < icoEnd, "ICO not ended!");
         uint256 tot = token.balanceOf(address(this));
         uint256 totEth = address(this).balance;
-        for (uint256 i = 0; i < contributors.lenght; i++) {
+        for (uint256 i = 0; i < contributors.length; i++) {
             token.transfer(contributors[i], (tot * contribution[contributors[i]]) / totEth);
         }
         token.transfer(address(token), token.balanceOf(address(this)));

@@ -99,7 +99,7 @@ const abi = [
 		"inputs": [],
 		"name": "enter",
 		"outputs": [],
-		"stateMutability": "payable",
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -146,7 +146,18 @@ const abi = [
 		"type": "function"
 	},
 	{
-		"inputs": [],
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_dt",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "_isTestnet",
+				"type": "bool"
+			}
+		],
 		"stateMutability": "nonpayable",
 		"type": "constructor"
 	},
@@ -158,19 +169,6 @@ const abi = [
 				"internalType": "int256",
 				"name": "",
 				"type": "int256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "creator",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
 			}
 		],
 		"stateMutability": "view",
@@ -254,6 +252,19 @@ const abi = [
 	},
 	{
 		"inputs": [],
+		"name": "dungeonToken",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
 		"name": "fee",
 		"outputs": [
 			{
@@ -297,14 +308,14 @@ const abi = [
 			{
 				"components": [
 					{
-						"internalType": "uint256[4]",
+						"internalType": "uint256[5]",
 						"name": "keys",
-						"type": "uint256[4]"
+						"type": "uint256[5]"
 					},
 					{
-						"internalType": "uint256[10]",
+						"internalType": "uint256[11]",
 						"name": "loot",
-						"type": "uint256[10]"
+						"type": "uint256[11]"
 					}
 				],
 				"internalType": "struct DungeonEngine.Inventory",
@@ -435,6 +446,19 @@ const abi = [
 				"internalType": "uint256",
 				"name": "",
 				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "mythicKeysDropped",
+		"outputs": [
+			{
+				"internalType": "uint8",
+				"name": "",
+				"type": "uint8"
 			}
 		],
 		"stateMutability": "view",
@@ -623,5 +647,4 @@ const abi = [
 		"type": "function"
 	}
 ]
-
 export default abi;
