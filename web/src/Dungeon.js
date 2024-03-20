@@ -3,11 +3,11 @@ import { useMetaMask } from "metamask-react";
 import { ethers } from 'ethers';
 import Web3 from 'web3';
 import abi from './abi';
-import { CONTRACT_ADDRESS, RPC_URL, ENV } from './constants';
+import { CONTRACT_ADDRESS, RPC_URL, ENV, CHAIN_ID } from './constants';
 
 const fee = ENV == 'production' ? 10000 : 1; // finney
-const rarityColor = ['#ad846a', '#b0b0b0', '#ffc247', '#47fffc'];
-const rarityName = ['wood', 'iron', 'golden', 'diamond'];
+const rarityColor = ['#ad846a', '#b0b0b0', '#ffc247', '#47fffc', '#fc4521'];
+const rarityName = ['wood', 'iron', 'golden', 'diamond', 'mythic'];
 const lootName = [
   "ByBit referral code",
   "Cardano holder plate",
@@ -26,6 +26,7 @@ const lootValue = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];
 function Dungeon() {
 
   const { account, ethereum } = useMetaMask();
+
   const web3 = new Web3(RPC_URL);
   const contract = new web3.eth.Contract(abi, CONTRACT_ADDRESS);
 

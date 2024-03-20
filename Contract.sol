@@ -49,6 +49,8 @@ contract DungeonEngine {
     uint[4] public lastRarityAt;
     uint8 public mythicKeysDropped;
 
+    address public dungeonToken;
+
     bool gameOver;
 
     // for scaling down money requirements on testnet
@@ -59,8 +61,9 @@ contract DungeonEngine {
     event RoomOpened(int x, int y, address opener);
     event KeyFound(address user, uint8 rarity);
 
-    constructor() {
-        fee = 10 ether;
+    constructor(address _dt, bool _isTestnet) {
+        dungeonToken = _dt;
+        fee = 11 ether;
         top = 1;
         bottom = -1;
         left = -1;
@@ -89,7 +92,12 @@ contract DungeonEngine {
             1000 ether,
             2500 ether,
         ];
-        reducer = 10000; // change to 1 for mainnet
+        if (_isTestnet) {
+            reducer = 10000;
+            userInventory[msg.sender].keys[4] = 4;
+        } else {
+            reducer = 1;
+        }
     }
 
     modifier mustBeInside() {
@@ -126,11 +134,7 @@ contract DungeonEngine {
         return dungeonSerialized[y];
     }
 
-    function enter() public payable {
-        require(
-            msg.value >= fee / reducer,
-            "Pay 10 MATIC to enter the dungeon!"
-        );
+    function enter() public {
         if (!isInside[msg.sender]) {
             totalInside += 1;
             userPosition[msg.sender] = Position(0, 0);
@@ -198,12 +202,13 @@ contract DungeonEngine {
             msg.value >= (number * fee) / reducer,
             "You have to send enough money to buy the key(s)!"
         );
+        payable(dungeonToken).transfer(msg.value / 11);
         userInventory[msg.sender].keys[0] += number;
     }
 
     function sellLoot() public mustBeInside notOpening mustBeAtStart {
         uint money = 0;
-        for (uint8 i = 0; i < 10; i++) {
+        for (uint8 i = 0; i < 11; i++) {
             money +=
                 (userInventory[msg.sender].loot[i] * lootValue[i]) /
                 reducer;
@@ -374,6 +379,7 @@ contract DungeonEngine {
             payable(dungeon[10][-10].opener).transfer(amount);
             payable(dungeon[-10][10].opener).transfer(amount);
             payable(dungeon[-10][-10].opener).transfer(amount);
+            payable(dungeonToken).transfer(amount);
             gameOver = true;
         }
     }
