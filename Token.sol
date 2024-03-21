@@ -261,7 +261,7 @@ contract DungeonToken is IERC20 {
     }
 
     function name() public view returns (string memory) {
-        return "DungeonToken";
+        return "DUNGEON";
     }
 
     function symbol() public view returns (string memory) {

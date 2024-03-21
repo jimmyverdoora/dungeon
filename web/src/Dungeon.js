@@ -4,7 +4,7 @@ import Web3 from 'web3';
 import abi from './abi/dungeon';
 import { CONTRACT_ADDRESS, RPC_URL, ENV } from './constants';
 
-const fee = ENV == 'production' ? 11000 : 2; // finney
+const fee = ENV == 'production' ? 11000000 : 1100; // szabo
 const rarityColor = ['#ad846a', '#b0b0b0', '#ffc247', '#47fffc', '#fc4521'];
 const rarityName = ['wood', 'iron', 'golden', 'diamond', 'mythic'];
 const lootName = [
@@ -31,7 +31,7 @@ function Dungeon() {
   const contract = new web3.eth.Contract(abi, CONTRACT_ADDRESS);
 
   const [view, setView] = useState({ top: '50%', left: '50%' });
-  const step = 50;
+  const step = 100;
 
   const [totInside, setTotInside] = useState(0);
   const [totRooms, setTotRooms] = useState(0);
@@ -116,7 +116,6 @@ function Dungeon() {
       const p = await contract.methods.userPosition(account).call();
       setPosition([Number(p.x), Number(p.y)]);
       const inv = await contract.methods.getInventory(account).call();
-      console.log(inv)
       if (!atStart) {
         const newLoot = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter(i => Number(inv.loot[i]) > inventory.loot[i])[0];
         const newKey = [0, 1, 2, 3, 4].filter(i => Number(inv.keys[i]) > inventory.keys[i])[0];
@@ -265,7 +264,7 @@ function Dungeon() {
       const receipt = await con.methods.buyKeys(num).send({
         from: account,
         gasPrice: Math.round(Number(gp) * 1.5).toString(),
-        value: Web3.utils.toWei(num * fee, 'finney')
+        value: Web3.utils.toWei(num * fee, 'szabo')
       });
       console.log(receipt);
       loadInfo();
@@ -505,25 +504,25 @@ function Dungeon() {
         <p style={{ marginBottom: 0, marginTop: 0 }}>+--------------------------------------------</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| Total loot value: {totalLootValue} MATIC</p>
       </div>
-      <div style={{ color: '#4aff47', backgroundColor: 'black', position: 'absolute', bottom: '10px', right: '50%', fontFamily: 'monospace' }}>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>+----+</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#4aff47' }} onClick={() => moveView('up')}>\/</a> |</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>+----+</p>
+      <div style={{ color: '#4aff47', backgroundColor: 'black', position: 'absolute', bottom: '10px', left: '50%', fontFamily: 'monospace' }}>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+----+{view.top && view.top.length > 100 && "------+"}</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#4aff47' }} onClick={() => moveView('up')}>\/</a> | {view.top && view.top.length > 100 && <a href="#" style={{ textDecoration: 'none', color: '#4aff47' }} onClick={() => setView({ top: '50%', left: '50%' })}>BACK |</a>}</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+----+{view.top && view.top.length > 100 && "------+"}</p>
       </div>
-      <div style={{ color: '#4aff47', backgroundColor: 'black', position: 'absolute', top: '10px', right: '50%', fontFamily: 'monospace' }}>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>+----+</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#4aff47' }} onClick={() => moveView('down')}>/\</a> |</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>+----+</p>
+      <div style={{ color: '#4aff47', backgroundColor: 'black', position: 'absolute', top: '10px', left: '50%', fontFamily: 'monospace' }}>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+----+{view.top && view.top.length > 100 && "------+"}</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#4aff47' }} onClick={() => moveView('down')}>/\</a> | {view.top && view.top.length > 100 && <a href="#" style={{ textDecoration: 'none', color: '#4aff47' }} onClick={() => setView({ top: '50%', left: '50%' })}>BACK |</a>}</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+----+{view.top && view.top.length > 100 && "------+"}</p>
       </div>
       <div style={{ color: '#4aff47', backgroundColor: 'black', position: 'absolute', top: '50%', right: '10px', fontFamily: 'monospace' }}>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>+---+</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#4aff47' }} onClick={() => moveView('left')}>{'>'}</a> |</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>+---+</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>{view.left && view.left.length > 150 && "+------"}+---+</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>|{view.left && view.left.length > 150 && <a href="#" style={{ textDecoration: 'none', color: '#4aff47' }} onClick={() => setView({ top: '50%', left: '50%' })}> BACK |</a>}<a href="#" style={{ textDecoration: 'none', color: '#4aff47' }} onClick={() => moveView('left')}>{' >'}</a> |</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>{view.left && view.left.length > 150 && "+------"}+---+</p>
       </div>
       <div style={{ color: '#4aff47', backgroundColor: 'black', position: 'absolute', top: '50%', left: '10px', fontFamily: 'monospace' }}>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>+---+</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#4aff47' }} onClick={() => moveView('right')}>{'<'}</a> |</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>+---+</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+---+{view.left && view.left.length > 150 && "------+"}</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#4aff47' }} onClick={() => moveView('right')}>{'<'}</a> | {view.left && view.left.length > 150 && <a href="#" style={{ textDecoration: 'none', color: '#4aff47' }} onClick={() => setView({ top: '50%', left: '50%' })}>BACK |</a>}</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+---+{view.left && view.left.length > 150 && "------+"}</p>
       </div>
     </div>
   );
