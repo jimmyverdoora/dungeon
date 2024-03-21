@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 import Home from './Home';
 import Dungeon from './Dungeon';
+import LandingPage from './Landing';
 import Token from './Token';
 import Loading from './Loading';
 import { useMetaMask } from "metamask-react";
@@ -20,6 +21,7 @@ function App() {
         <div className='desktop'>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/landing" element={<LandingPage />} />
             <Route path="/game" element={status == 'connected' && chainId == CHAIN_ID ? <Dungeon /> : <Loading action={'Connect Metamask...'} />} />
             <Route path="/token" element={status == 'connected' && chainId == CHAIN_ID ? <Token /> : <Loading action={'Connect Metamask...'} />} />
           </Routes>
