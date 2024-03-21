@@ -88,8 +88,6 @@ function Dungeon() {
     setDiamondValue((Number(Web3.utils.fromWei(cb.toString(), 'finney')) / 1000).toFixed(2));
     const ti = await contract.methods.totalInside().call();
     setTotInside(Number(ti));
-    const tr = await contract.methods.totalRooms().call();
-    setTotRooms(Number(tr));
     const newLimits = {
       top: Number(await contract.methods.top().call()),
       bottom: Number(await contract.methods.bottom().call()),
@@ -316,6 +314,7 @@ function Dungeon() {
   }
 
   function generateDungeon(serializedDungeon, dungeonLimits) {
+    let openedRooms = 0;
     let { top, bottom, left, right } = dungeonLimits;
     top = Math.max(top, 20);
     bottom = Math.min(bottom, -20);
@@ -336,10 +335,14 @@ function Dungeon() {
           }
         } else {
           row.push({ found: true, open: code > 5, rarity: (code - 1) % 5, x, y });
+          if (code > 5) {
+            openedRooms += 1;
+          }
         }
       }
       result.push(row);
     }
+    setTotRooms(openedRooms);
     return result;
   }
 
