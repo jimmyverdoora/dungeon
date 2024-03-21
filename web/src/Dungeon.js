@@ -86,7 +86,7 @@ function Dungeon() {
     const b = await web3.eth.getBalance(account);
     setBalance((Number(Web3.utils.fromWei(b.toString(), 'ether'))).toFixed(8));
     const cb = await web3.eth.getBalance(CONTRACT_ADDRESS);
-    setDiamondValue((Number(Web3.utils.fromWei(cb.toString(), 'finney')) / 2000).toFixed(2));
+    setDiamondValue((Number(Web3.utils.fromWei(cb.toString(), 'finney')) / 1000).toFixed(2));
     const ti = await contract.methods.totalInside().call();
     setTotInside(Number(ti));
     const tr = await contract.methods.totalRooms().call();
@@ -486,9 +486,9 @@ function Dungeon() {
         {news && <p style={{ marginBottom: 0, marginTop: 0 }}>{'\u00A0'}{news} |</p>}
         <p style={{ marginBottom: 0, marginTop: 0 }}>{'-'.repeat(topLeftPad)}+</p>
       </div>
-      <div style={{ color: rarityColor[3], backgroundColor: 'black', position: 'absolute', top: '10px', right: '10px', fontFamily: 'monospace' }}>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| CURRENT DIAMOND DROP: {diamondValue} MATIC</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>+------------------------------{'-'.repeat(diamondValue.toString().length)}</p>
+      <div style={{ color: rarityColor[4], backgroundColor: 'black', position: 'absolute', top: '10px', right: '10px', fontFamily: 'monospace' }}>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| CURRENT FINAL TREASURE: {diamondValue} MATIC</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+--------------------------------{'-'.repeat(diamondValue.toString().length)}</p>
       </div>
       <div style={{ color: '#4aff47', backgroundColor: 'black', position: 'absolute', bottom: '10px', right: '10px', fontFamily: 'monospace' }}>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+--------------------------------------------</p>
