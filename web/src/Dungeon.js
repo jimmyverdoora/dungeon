@@ -10,7 +10,6 @@ const rarityName = ['bronze', 'silver', 'golden', 'diamond', 'mythic'];
 const lootName = [
   "ByBit referral code",
   "Cryptopunk JPEG",
-  "Cardano holder plate",
   "Pepe bone",
   "Shiba tail",
   "Doge fur",
@@ -20,7 +19,7 @@ const lootName = [
   "Sam Bankman-Fried cell key",
   "Satoshi Nakamoto picture"
 ];
-const lootValue = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2500];
+const lootValue = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];
 
 // React component to render dungeon map
 function Dungeon() {
@@ -117,7 +116,7 @@ function Dungeon() {
       setPosition([Number(p.x), Number(p.y)]);
       const inv = await contract.methods.getInventory(account).call();
       if (!atStart) {
-        const newLoot = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter(i => Number(inv.loot[i]) > inventory.loot[i])[0];
+        const newLoot = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].filter(i => Number(inv.loot[i]) > inventory.loot[i])[0];
         const newKey = [0, 1, 2, 3, 4].filter(i => Number(inv.keys[i]) > inventory.keys[i])[0];
         if (newLoot) {
           setInfo(`You found a ${lootName[newLoot]}${newKey ? ` and a ${rarityName[newKey]} key` : ""}!`)
@@ -498,7 +497,7 @@ function Dungeon() {
         <p style={{ marginBottom: 0, marginTop: 0 }}>+--------------------------------------------</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| Keys: {[0, 1, 2, 3, 4].map(n => (<span style={{ color: rarityColor[n] }}> {inventory.keys[n]} </span>))}</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+--------------------------------------------</p>
-        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n =>
+        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(n =>
           <p style={{ marginBottom: 0, marginTop: 0 }}>| {lootName[n]}: {inventory.loot[n]}</p>
         )}
         <p style={{ marginBottom: 0, marginTop: 0 }}>+--------------------------------------------</p>

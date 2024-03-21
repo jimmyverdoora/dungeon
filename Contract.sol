@@ -6,7 +6,7 @@ contract DungeonEngine {
     int public bottom;
     int public left;
     int public right;
-    uint[11] public lootValue;
+    uint[10] public lootValue;
     struct Room {
         bool found;
         bool open;
@@ -19,7 +19,7 @@ contract DungeonEngine {
     }
     struct Inventory {
         uint[5] keys;
-        uint[11] loot;
+        uint[10] loot;
     }
     struct OpeningData {
         bool isOpening;
@@ -90,7 +90,6 @@ contract DungeonEngine {
             200 ether,
             500 ether,
             1000 ether,
-            2500 ether
         ];
         if (_isTestnet) {
             reducer = 10000;
@@ -208,7 +207,7 @@ contract DungeonEngine {
 
     function sellLoot() public mustBeInside notOpening mustBeAtStart {
         uint money = 0;
-        for (uint8 i = 0; i < 11; i++) {
+        for (uint8 i = 0; i < 10; i++) {
             money +=
                 (userInventory[msg.sender].loot[i] * lootValue[i]) /
                 reducer;
@@ -257,18 +256,18 @@ contract DungeonEngine {
                 userInventory[user].keys[4] += 1;
                 emit KeyFound(user, 4);
             } else {
-                userInventory[user].loot[10] += 1;
+                userInventory[user].loot[9] += 1;
             }
             return;
         }
         if (result < 10) {
-            userInventory[user].loot[3 + 3 * rarity] += 1;
-        } else if (result < 30) {
             userInventory[user].loot[2 + 3 * rarity] += 1;
-        } else if (result < 60) {
+        } else if (result < 30) {
             userInventory[user].loot[1 + 3 * rarity] += 1;
-        } else {
+        } else if (result < 60) {
             userInventory[user].loot[3 * rarity] += 1;
+        } else if (rarity > 0) {
+            userInventory[user].loot[uint(3 * rarity - 1)] += 1;
         }
         if (
             _randomPercentile(

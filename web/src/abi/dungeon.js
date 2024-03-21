@@ -313,9 +313,9 @@ const abi = [
 						"type": "uint256[5]"
 					},
 					{
-						"internalType": "uint256[11]",
+						"internalType": "uint256[10]",
 						"name": "loot",
-						"type": "uint256[11]"
+						"type": "uint256[10]"
 					}
 				],
 				"internalType": "struct DungeonEngine.Inventory",
@@ -329,19 +329,6 @@ const abi = [
 	{
 		"inputs": [],
 		"name": "gold",
-		"outputs": [
-			{
-				"internalType": "uint8",
-				"name": "",
-				"type": "uint8"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "silver",
 		"outputs": [
 			{
 				"internalType": "uint8",
@@ -585,6 +572,19 @@ const abi = [
 	},
 	{
 		"inputs": [],
+		"name": "silver",
+		"outputs": [
+			{
+				"internalType": "uint8",
+				"name": "",
+				"type": "uint8"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
 		"name": "top",
 		"outputs": [
 			{
@@ -646,5 +646,6 @@ const abi = [
 		"stateMutability": "view",
 		"type": "function"
 	}
-]
+];
+
 export default abi;
