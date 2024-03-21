@@ -341,7 +341,7 @@ const abi = [
 	},
 	{
 		"inputs": [],
-		"name": "iron",
+		"name": "silver",
 		"outputs": [
 			{
 				"internalType": "uint8",

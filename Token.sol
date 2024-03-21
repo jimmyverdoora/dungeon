@@ -148,6 +148,8 @@ contract DungeonToken is IERC20 {
         _balances[_icoAddress] = 3 * _ts / 10;
     }
 
+    receive() external payable {}
+
     modifier icoOver() {
         require(block.number > _icoEnd, "Trading starts after ICO!");
         _;
@@ -260,15 +262,15 @@ contract DungeonToken is IERC20 {
         return address(this).balance.mul(10**decimals()).div(_balances[address(this)]);
     }
 
-    function name() public view returns (string memory) {
+    function name() public pure returns (string memory) {
         return "DUNGEON";
     }
 
-    function symbol() public view returns (string memory) {
+    function symbol() public pure returns (string memory) {
         return "DUNG";
     }
 
-    function decimals() public view returns (uint8) {
+    function decimals() public pure returns (uint8) {
         return 18;
     }
 

@@ -6,7 +6,7 @@ import { CONTRACT_ADDRESS, RPC_URL, ENV } from './constants';
 
 const fee = ENV == 'production' ? 11000000 : 1100; // szabo
 const rarityColor = ['#ad846a', '#b0b0b0', '#ffc247', '#47fffc', '#fc4521'];
-const rarityName = ['wood', 'iron', 'golden', 'diamond', 'mythic'];
+const rarityName = ['bronze', 'silver', 'golden', 'diamond', 'mythic'];
 const lootName = [
   "ByBit referral code",
   "Cryptopunk JPEG",
@@ -444,11 +444,11 @@ function Dungeon() {
         {dungeon.map(row => renderAsciiBlocks(row))}
       </div>
       {showShop && <div style={{ zIndex: 1, color: '#4aff47', backgroundColor: 'black', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontFamily: 'monospace' }}>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>+-------------------------+</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| Buy wood keys: <a href="#" style={{ textDecoration: 'none', color: rarityColor[0] }} onClick={() => buyKey(1)}>1</a> <a href="#" style={{ textDecoration: 'none', color: rarityColor[0] }} onClick={() => buyKey(2)}>2</a> <a href="#" style={{ textDecoration: 'none', color: rarityColor[0] }} onClick={() => buyKey(5)}>5</a> <a href="#" style={{ textDecoration: 'none', color: rarityColor[0] }} onClick={() => buyKey(10)}>10</a> |</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: rarityColor[2] }} onClick={() => sellLoot()}>Sell loot</a>{'\u00A0'.repeat(15)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#ff2222' }} onClick={() => setShowShop(false)}>Close shop</a>{'\u00A0'.repeat(14)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>+-------------------------+</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+---------------------------+</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| Buy bronze keys: <a href="#" style={{ textDecoration: 'none', color: rarityColor[0] }} onClick={() => buyKey(1)}>1</a> <a href="#" style={{ textDecoration: 'none', color: rarityColor[0] }} onClick={() => buyKey(2)}>2</a> <a href="#" style={{ textDecoration: 'none', color: rarityColor[0] }} onClick={() => buyKey(5)}>5</a> <a href="#" style={{ textDecoration: 'none', color: rarityColor[0] }} onClick={() => buyKey(10)}>10</a> |</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: rarityColor[2] }} onClick={() => sellLoot()}>Sell loot</a>{'\u00A0'.repeat(17)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#ff2222' }} onClick={() => setShowShop(false)}>Close shop</a>{'\u00A0'.repeat(16)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+---------------------------+</p>
       </div>}
       {action && <div style={{ zIndex: 1, color: '#4aff47', backgroundColor: 'black', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontFamily: 'monospace' }}>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+-{'-'.repeat(action.length)}-+</p>

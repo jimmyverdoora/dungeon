@@ -1,153 +1,169 @@
+@import url('https://fonts.googleapis.com/css2?family=Alice&family=Alike&family=Gulzar&family=Noto+Serif+JP&family=Young+Serif&family=Zen+Antique+Soft&display=swap');
 
-@import url('https://fonts.googleapis.com/css2?family=Alice&family=Alike&family=Gulzar&family=Noto+Serif+JP&family=Young+Serif&family=Zen+Antique+Soft&display=swap')
-;
- /* Ensures that the page is scrollable if the content overflows */
-  body, html {
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
+/* Ensures that the page is scrollable if the content overflows */
+body,
+html {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 
-  }
+}
 
 
 
 .hero-section {
-    
-    align-items: center;
-    justify-content: space-between;
-    height: 100vh; /* Adjust the height as needed */
-    background-size: cover;
-    background-position: center;
-    color: white; /* Adjust text color as needed */
-    flex-direction: column !important;
-    text-align: center;
-    display: flex !important;
-  }
-div .hero-section{
-    display: flex ;
+
+  align-items: center;
+  justify-content: space-between;
+  height: 100vh;
+  /* Adjust the height as needed */
+  background-size: cover;
+  background-position: center;
+  color: white;
+  /* Adjust text color as needed */
+  flex-direction: column !important;
+  text-align: center;
+  display: flex !important;
 }
 
-.test-section{
-    display: flex ;
-    flex-direction: column !important;
-    align-items: center;
+div .hero-section {
+  display: flex;
+}
+
+.test-section {
+  display: flex;
+  flex-direction: column !important;
+  align-items: center;
 }
 
 
 
-.hero-heading{
-    font-size: 7rem;
-    margin-bottom: 0px;
-    margin-top: 30px;
-    color: #FFFF00;
-    display: flex !important;
-    font-family: "Zen Antique Soft", serif;
-  
+.hero-heading {
+  font-size: 7rem;
+  margin-bottom: 0px;
+  margin-top: 30px;
+  color: #FFFF00;
+  display: flex !important;
+  font-family: "Zen Antique Soft", serif;
+
 }
 
-.hero-subheading{
-    font-size: 2rem;
-    margin-bottom: 0px;
-    max-width: 700px;
-    font-weight: 700;
-    display: flex !important;
-    margin-top: 10px;
-    
+.hero-subheading {
+  font-size: 2rem;
+  margin-bottom: 0px;
+  max-width: 700px;
+  font-weight: 700;
+  display: flex !important;
+  margin-top: 10px;
+
 }
 
-.hero-downheading{
-    font-size: 1.5rem;
-    margin-bottom: 60px;
-    max-width: 700px;
-    font-weight: 700;
-    color: #FFFF00;
-    
+.hero-downheading {
+  font-size: 1.5rem;
+  margin-bottom: 60px;
+  max-width: 700px;
+  font-weight: 700;
+  color: #FFFF00;
+
 
 }
 
 .content-section {
-    background-color: black;
-    color: white;
-    padding: 50px 20px;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    gap: 40px;
+  background-color: black;
+  color: white;
+  padding: 50px 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 40px;
 
-    
-    
-  }
-  
-  .content-section h2 {
-    margin-bottom: 2rem;
-    font-size: 2.5rem;
-    color: #FFFF00;
-  }
 
-  .game-info{
-    background-color: rgba(125, 125, 125, 0.12);
-    border-radius: 8px;
-    padding: 40px;
-    max-width: 500px;
-  }
-  
-  .info-block {
-   
-    padding: 0.5rem;
-  }
-  
-  
-  
-  .start-game {
-    margin-top: 2rem;
-  }
-  
-  .start-game button {
-    background-color: #FFFF00; /* Yellow background for the button */
-    color: black; /* Black text color for contrast */
-    border: none;
-    padding: 1rem 2rem;
-    font-size: 1.5rem;
-    cursor: pointer;
-    align-items: center;
-    transition: background-color 0.3s ease;
-    border-radius: 8px;
-  }
-  
-  .start-game button:hover {
-    background-color: #FFD700; /* A lighter yellow for hover effect */
-    
+
 }
-  
-  .code-font {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-      monospace;
+
+.content-section h2 {
+  margin-bottom: 2rem;
+  font-size: 2.5rem;
+  color: #FFFF00;
+}
+
+.game-info {
+  background-color: rgba(125, 125, 125, 0.12);
+  border-radius: 8px;
+  padding: 40px;
+  max-width: 500px;
+}
+
+.info-block {
+
+  padding: 0.5rem;
+}
+
+
+
+.start-game {
+  margin-top: 2rem;
+}
+
+.start-game button {
+  background-color: #FFFF00;
+  /* Yellow background for the button */
+  color: black;
+  /* Black text color for contrast */
+  border: none;
+  padding: 1rem 2rem;
+  font-size: 1.5rem;
+  cursor: pointer;
+  align-items: center;
+  transition: background-color 0.3s ease;
+  border-radius: 8px;
+}
+
+.start-game button:hover {
+  background-color: #FFD700;
+  /* A lighter yellow for hover effect */
+
+}
+
+.code-font {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.crypto-buttons {
+  border-radius: 8px;
+  border-style: solid;
+}
+
+.game-heading {
+  color: #47fffc !important;
+}
+
+.ico-heading {
+  color: #D0FF13 !important;
+}
+
+.game-heading-btn {
+  background-color: #47fffc !important;
+}
+
+.ico-heading-btn {
+  background-color: #D0FF13 !important;
+}
+
+@keyframes blink {
+
+  0%,
+  100% {
+    opacity: 1;
   }
 
-  .crypto-buttons{
-    border-radius: 8px;
-    border-style: solid;
+  50% {
+    opacity: 0;
   }
+}
 
-  .game-heading {
-    color: #47fffc !important;
-  }
-
-  .ico-heading {
-    color: #D0FF13 !important;
-  }
-
-  @keyframes blink {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0;
-    }
-  }
-  
-  .hero-downheading {
-    animation: blink 1.5s linear infinite;
-    /* Additional styling for your 'hero-downheading' class */
-  }
-  
+.hero-downheading {
+  animation: blink 1.5s linear infinite;
+  /* Additional styling for your 'hero-downheading' class */
+}

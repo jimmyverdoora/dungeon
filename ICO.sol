@@ -106,6 +106,7 @@ contract ICO {
 
     function buy() public payable {
         require(msg.value > 0, "Pay something!");
+        require(block.number < icoEnd, "ICO ended!");
         if (contribution[msg.sender] == 0) {
             contributors.push(msg.sender);
         }
@@ -117,7 +118,7 @@ contract ICO {
     }
 
     function redeem() public {
-        require(block.number < icoEnd, "ICO not ended!");
+        require(block.number > icoEnd, "ICO not ended!");
         uint256 tot = token.balanceOf(address(this));
         uint256 totEth = address(this).balance;
         for (uint256 i = 0; i < contributors.length; i++) {

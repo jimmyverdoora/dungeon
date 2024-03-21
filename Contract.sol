@@ -29,13 +29,13 @@ contract DungeonEngine {
     mapping(int => mapping(int => Room)) public dungeon; // x y
     mapping(int => uint8[]) public dungeonSerialized;
     // 0 -> not found
-    // 1 -> wood not opened
-    // 2 -> iron not opened
+    // 1 -> bronze not opened
+    // 2 -> silver not opened
     // 3 -> gold not opened
     // 4 -> diamond not opened
     // 5 -> mythic not opened
-    // 6 -> wood opened
-    // 7 -> iron opened
+    // 6 -> bronze opened
+    // 7 -> silver opened
     // 8 -> gold opened
     // 9 -> diamond opened
     // 10 -> mythic opened
@@ -359,7 +359,7 @@ contract DungeonEngine {
         } else if (result >= gold()) {
             rarity = 2;
             lastRarityAt[2] = totalRooms;
-        } else if (result >= iron()) {
+        } else if (result >= silver()) {
             rarity = 1;
             lastRarityAt[1] = totalRooms;
         }
@@ -394,7 +394,7 @@ contract DungeonEngine {
         return res >= 0 ? uint8(uint(res)) : 0;
     }
 
-    function iron() public view returns (uint8) {
+    function silver() public view returns (uint8) {
         int res = 100 - (((int(totalRooms) - int(lastRarityAt[1])) * 5) - 50);
         return res >= 0 ? uint8(uint(res)) : 0;
     }

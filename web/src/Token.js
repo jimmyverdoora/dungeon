@@ -36,6 +36,7 @@ function Token() {
   async function sendValue() {
     const w3 = new Web3(ethereum);
     const con = new w3.eth.Contract(abi, ICO_ADDRESS);
+    setTimeout(() => setShowOpen(false), 1000);
     try {
       const gp = await web3.eth.getGasPrice();
       const receipt = await con.methods.buy().send({
@@ -55,7 +56,7 @@ function Token() {
       <Title />
       <div style={{ display: 'flex', justifyContent: 'center', fontSize: 'large' }}>
         <div>
-          <p style={{ marginBottom: 0, marginTop: 0 }}>+--- WTF? You said no ERC20! </p>
+          <p style={{ marginBottom: 0, marginTop: 0 }}>+--- Why $DUNG? </p>
           <p style={{ marginBottom: 0, marginTop: 0 }}>| Play money is 100% MATIC. The $DUNG token</p>
           <p style={{ marginBottom: 0, marginTop: 0 }}>| lets you "own" your stake of the game.</p>
           <p style={{ marginBottom: 0, marginTop: 0 }}>| And this is not only for chapter 1 but for</p>
