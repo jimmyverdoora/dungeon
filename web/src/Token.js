@@ -3,7 +3,7 @@ import { useMetaMask } from "metamask-react";
 import Title from './Title';
 import abi from './abi/ico';
 import Web3 from 'web3';
-import { ICO_ADDRESS, RPC_URL } from './constants';
+import { ICO_ADDRESS, RPC_URL, TOKEN_ADDRESS } from './constants';
 
 
 function Token() {
@@ -16,6 +16,8 @@ function Token() {
   const [balance, setBalance] = useState(0);
   const [icoValue, setIcoValue] = useState(0);
   const [icoValueTot, setIcoValueTot] = useState(0);
+  const [showOpen, setShowOpen] = useState(false);
+  const [value, setValue] = useState(100);
 
   useEffect(() => {
     loadInfo(true);
@@ -26,12 +28,12 @@ function Token() {
     const b = await web3.eth.getBalance(account);
     setBalance((Number(Web3.utils.fromWei(b.toString(), 'ether'))).toFixed(6));
     const cb = await web3.eth.getBalance(ICO_ADDRESS);
-    setIcoValueTot((Number(Web3.utils.fromWei(cb.toString(), 'ether'))).toFixed(4)) 
+    setIcoValueTot((Number(Web3.utils.fromWei(cb.toString(), 'ether'))).toFixed(4))
     const iv = await contract.methods.getContribution().call({ from: account });
-    setIcoValue((Number(Web3.utils.fromWei(iv.toString(), 'ether'))).toFixed(6)) 
+    setIcoValue((Number(Web3.utils.fromWei(iv.toString(), 'ether'))).toFixed(6))
   }
 
-  async function sendValue(amount) {
+  async function sendValue() {
     const w3 = new Web3(ethereum);
     const con = new w3.eth.Contract(abi, ICO_ADDRESS);
     try {
@@ -39,7 +41,7 @@ function Token() {
       const receipt = await con.methods.buy().send({
         from: account,
         gasPrice: Math.round(Number(gp) * 1.2).toString(),
-        value: Web3.utils.toWei(amount, 'ether')
+        value: Web3.utils.toWei(value, 'ether')
       });
       console.log(receipt);
       loadInfo();
@@ -74,10 +76,35 @@ function Token() {
           <p style={{ marginBottom: 0, marginTop: 0 }}>+-------------------------------------------</p>
           <p style={{ marginBottom: 0, marginTop: 0 }}>| Total ICO value locked: {icoValueTot} MATIC</p>
           <p style={{ marginBottom: 0, marginTop: 0 }}>+-------------------------------------------</p>
-          <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="/" style={{ textDecoration: 'none', color: '#ffd480' }} >LOCK MATIC</a>{'\u00A0'.repeat(27)}<a href="/" style={{ textDecoration: 'none', color: '#ffd480' }} >BACK</a></p>
+          <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#ffd480' }} onClick={() => setShowOpen(true)} >LOCK MATIC</a>{'\u00A0'.repeat(27)}<a href="/" style={{ textDecoration: 'none', color: '#ffd480' }} >BACK</a></p>
           <p style={{ marginBottom: 0, marginTop: 0 }}>+-------------------------------------------</p>
         </div>
       </div>
+      {showOpen && <div style={{ zIndex: 1, color: '#fc4521', backgroundColor: 'black', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontFamily: 'monospace', fontSize: 'large' }}>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+------------------------------------------------------------+</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>|{'\u00A0'.repeat(25)}<span style={{ color: '#ffd480' }}>BUY $DUNG</span>{'\u00A0'.repeat(26)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| 30% of the total supply will be distributed proportionally{'\u00A0'}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| to the ICO participants. Once the limit block is reached,{'\u00A0'.repeat(2)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| all the MATIC locked will be added in the token liquidity{'\u00A0'.repeat(2)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| pool, $DUNG token given out to ICO members and buy/sell{'\u00A0'.repeat(4)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| functionality of $DUNG token enabled. The swap pool is{'\u00A0'.repeat(5)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| embedded inside the token contract.{'\u00A0'.repeat(24)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| TOKEN: <a href={`https://polygonscan.com/token/${TOKEN_ADDRESS.toLowerCase()}`} style={{ textDecoration: 'none', color: '#ffd480' }} >{TOKEN_ADDRESS}</a>{'\u00A0'.repeat(10)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| ICO: <a href={`https://polygonscan.com/address/${ICO_ADDRESS.toLowerCase()}`} style={{ textDecoration: 'none', color: '#ffd480' }} >{ICO_ADDRESS}</a>{'\u00A0'.repeat(12)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>|{'\u00A0'.repeat(60)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>|{'\u00A0'.repeat(22)}<span style={{ color: '#ffd480' }}>+-------------+</span>{'\u00A0'.repeat(23)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>|{'\u00A0'.repeat(22)}<span style={{ color: '#ffd480' }}>|</span><input
+          type="number"
+          style={{ width: '106px', fontFamily: 'monospace', color: '#47fffc', border: 'none', background: 'none', outline: 'none' }}
+          value={value}
+          onChange={e => setValue(Number(e.target.value))}
+          onWheel={() => {}}
+          autoFocus={true}
+        /><span style={{ color: '#ffd480' }}>|</span>{'\u00A0'.repeat(23)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>|{'\u00A0'.repeat(22)}<span style={{ color: '#ffd480' }}>+-------------+</span>{'\u00A0'.repeat(23)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#ffd480' }} onClick={() => sendValue()}>LOCK!</a>{'\u00A0'.repeat(48)}<a href="#" style={{ textDecoration: 'none', color: '#ffd480' }} onClick={() => setShowOpen(false)}>CLOSE</a> |</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+------------------------------------------------------------+</p>
+      </div>}
     </div>
   );
 }
