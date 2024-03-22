@@ -205,6 +205,18 @@ contract DungeonEngine {
         userInventory[msg.sender].keys[0] += number;
     }
 
+    function giftKeys(
+        uint number,
+        address target
+    ) public payable mustBeInside notOpening mustBeAtStart {
+        require(
+            msg.value >= (number * fee) / reducer,
+            "You have to send enough money to buy the key(s)!"
+        );
+        payable(dungeonToken).transfer(msg.value / 11);
+        userInventory[target].keys[0] += number;
+    }
+
     function sellLoot() public mustBeInside notOpening mustBeAtStart {
         uint money = 0;
         for (uint8 i = 0; i < 10; i++) {
@@ -251,7 +263,7 @@ contract DungeonEngine {
             10
         );
         if (rarity == 3) {
-            uint8 limit = mythicKeysDropped < 4 ? uint8(8 - 2 * mythicKeysDropped) : 2;
+            uint8 limit = mythicKeysDropped < 4 ? uint8(4 - mythicKeysDropped) : 1;
             if (result < limit) {
                 userInventory[user].keys[4] += 1;
                 emit KeyFound(user, 4);

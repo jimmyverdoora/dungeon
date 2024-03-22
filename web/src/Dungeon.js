@@ -34,6 +34,8 @@ function Dungeon() {
 
   const [totInside, setTotInside] = useState(0);
   const [totRooms, setTotRooms] = useState(0);
+  const [totRoomsD, setTotRoomsD] = useState(0);
+  const [openers, setOpeners] = useState(["", "", "", ""]);
   const [news, setNews] = useState("");
   const [newsAt, setNewsAt] = useState(Date.now());
   const [position, setPosition] = useState(null);
@@ -86,7 +88,7 @@ function Dungeon() {
     const b = await web3.eth.getBalance(account);
     setBalance((Number(Web3.utils.fromWei(b.toString(), 'ether'))).toFixed(8));
     const cb = await web3.eth.getBalance(CONTRACT_ADDRESS);
-    setDiamondValue((Number(Web3.utils.fromWei(cb.toString(), 'finney')) / 1000).toFixed(2));
+    setDiamondValue((Number(Web3.utils.fromWei(cb.toString(), 'finney')) / 1000).toFixed(10));
     const ti = await contract.methods.totalInside().call();
     setTotInside(Number(ti));
     const newLimits = {
@@ -109,6 +111,16 @@ function Dungeon() {
       ser.push(new Array(newLimits.right - newLimits.left + 1 + padLeft + padRight).fill(0));
     }
     setDungeon(generateDungeon(ser, newLimits));
+    const newOpeners = openers;
+    for (const yy of [10, -10]) {
+      for (const xx of [-10, 10]) {
+        const opener = await contract.methods.dungeon(xx, yy).call();
+        if (opener.opener != '0x0000000000000000000000000000000000000000') {
+          newOpeners[2 * Math.round((yy - 10) / (-20)) + Math.round((xx + 10) / 20)] = opener.opener;
+        }
+      }
+    }
+    setOpeners(newOpeners);
     const isInside = await contract.methods.isInside(account).call();
     if (isInside) {
       const p = await contract.methods.userPosition(account).call();
@@ -316,6 +328,7 @@ function Dungeon() {
 
   function generateDungeon(serializedDungeon, dungeonLimits) {
     let openedRooms = 0;
+    let discoveredRooms = 0;
     let { top, bottom, left, right } = dungeonLimits;
     top = Math.max(top, 20);
     bottom = Math.min(bottom, -20);
@@ -331,11 +344,15 @@ function Dungeon() {
         if (code == 0) {
           if (Math.abs(x) == 10 && Math.abs(y) == 10) {
             row.push({ found: true, open: false, x, y, rarity: 4 });
+            discoveredRooms += 1;
           } else {
             row.push({ found: false, x, y });
           }
         } else {
           row.push({ found: true, open: code > 5, rarity: (code - 1) % 5, x, y });
+          if (code > 0) {
+            discoveredRooms += 1;
+          }
           if (code > 5) {
             openedRooms += 1;
           }
@@ -344,6 +361,7 @@ function Dungeon() {
       result.push(row);
     }
     setTotRooms(openedRooms);
+    setTotRoomsD(discoveredRooms);
     return result;
   }
 
@@ -416,6 +434,17 @@ function Dungeon() {
     </div >;
   }
 
+  const totRoomEst = 231088;
+  const estPayoutNum = totRooms ? Math.round(diamondValue / totRooms * totRoomEst) : 0;
+  let estPayout;
+  if (estPayoutNum >= 1000000) {
+    estPayout = (estPayoutNum / 1000000).toFixed(6).replace(/\.?0+$/, '') + 'M';
+  } else if (estPayoutNum >= 1000) {
+    estPayout = (estPayoutNum / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  } else {
+    estPayout = estPayoutNum.toString();
+  }
+
   function moveView(direction) {
     setView(prevPosition => {
       let { top, left } = prevPosition;
@@ -439,7 +468,9 @@ function Dungeon() {
     });
   }
 
-  const topLeftPad = Math.max(totInside.toString().length + 17, totRooms.toString().length + 16, news.length + 2);
+  const topLeftPad = Math.max(totInside.toString().length + 17, totRooms.toString().length + 16, totRoomsD.toString().length + 15, news.length + 2);
+
+  const dvPad = (openers[0] || openers[1] || openers[2] || openers[3]) ? Math.max(estPayout.toString().length, 13) : estPayout.toString().length;
 
   return (
     <div>
@@ -485,13 +516,17 @@ function Dungeon() {
       </div>}
       <div style={{ color: '#4aff47', backgroundColor: 'black', position: 'absolute', top: '10px', left: '10px', fontFamily: 'monospace' }}>
         <p style={{ marginBottom: 0, marginTop: 0 }}>{'\u00A0'}DEGENS INSIDE: {totInside}{'\u00A0'.repeat(Math.max(1, topLeftPad - totInside.toString().length - 16))}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>{'\u00A0'}ROOMS FOUND: {totRoomsD}{'\u00A0'.repeat(Math.max(1, topLeftPad - totRoomsD.toString().length - 14))}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>{'\u00A0'}ROOMS OPENED: {totRooms}{'\u00A0'.repeat(Math.max(1, topLeftPad - totRooms.toString().length - 15))}|</p>
         {news && <p style={{ marginBottom: 0, marginTop: 0 }}>{'\u00A0'}{news} |</p>}
         <p style={{ marginBottom: 0, marginTop: 0 }}>{'-'.repeat(topLeftPad)}+</p>
       </div>
       <div style={{ color: rarityColor[4], backgroundColor: 'black', position: 'absolute', top: '10px', right: '10px', fontFamily: 'monospace' }}>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| CURRENT FINAL TREASURE: {diamondValue} MATIC</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>+--------------------------------{'-'.repeat(diamondValue.toString().length)}</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| ESTIMATED FINAL TREASURE: {estPayout} MATIC</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+----------------------------------{'-'.repeat(dvPad)}</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| MYTHIC ISLAND OPENERS </p>
+        {openers.map((opener, idx) => (<p style={{ marginBottom: 0, marginTop: 0 }}>| {idx + 1}: {opener}</p>))}
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+----------------------------------{'-'.repeat(dvPad)}</p>
       </div>
       <div style={{ color: '#4aff47', backgroundColor: 'black', position: 'absolute', bottom: '10px', right: '10px', fontFamily: 'monospace' }}>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+--------------------------------------------</p>
