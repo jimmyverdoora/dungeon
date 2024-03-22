@@ -218,30 +218,41 @@ contract DungeonToken is IERC20 {
         return true;
     }
 
-    function buy() icoOver public payable returns (bool) {
+    function buy(uint256 minOutput) icoOver public payable returns (bool) {
         uint256 newEth = address(this).balance;
         uint256 oldEth = uint256(newEth - msg.value);
         uint256 dung = _balances[address(this)];
         uint256 currentK = oldEth.mul(dung);
+        uint256 output = dung.sub(currentK.div(newEth));
+        require(output >= minOutput, "Slippage tollerance exceeded!");
         _transfer(
             address(this),
             msg.sender,
-            dung.sub(currentK.div(newEth))
+            output
         );
         return true;
     }
 
-    function sell(uint256 value) icoOver public returns (bool) {
+    function sell(uint256 value, uint256 minOutput) icoOver public returns (bool) {
         uint256 eth = address(this).balance;
         uint256 dung = _balances[address(this)];
         uint256 currentK = eth.mul(dung);
+        uint256 output = eth.sub(currentK.div(dung.add(value)));
+        require(output >= minOutput, "Slippage tollerance exceeded!");
         _transfer(
             msg.sender,
             address(this),
             value
         );
-        payable(msg.sender).transfer(eth.sub(currentK.div(dung.add(value))));
+        payable(msg.sender).transfer(output);
         return true;
+    }
+
+    function estimatePrice(uint256 output) public view returns (uint256) {
+        uint256 eth = address(this).balance;
+        uint256 dung = _balances[address(this)];
+        uint256 currentK = eth.mul(dung);
+        return currentK.div(dung.sub(output)).sub(eth);
     }
 
     function estimateBuy(uint256 value) public view returns (uint256) {
