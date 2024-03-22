@@ -1,15 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Alice&family=Alike&family=Gulzar&family=Noto+Serif+JP&family=Young+Serif&family=Zen+Antique+Soft&display=swap');
 
-/* Ensures that the page is scrollable if the content overflows */
-body,
-html {
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
-
-}
-
-
 
 .hero-section {
 
