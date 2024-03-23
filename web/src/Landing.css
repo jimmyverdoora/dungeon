@@ -26,8 +26,6 @@ div .hero-section {
   align-items: center;
 }
 
-
-
 .hero-heading {
   font-size: 7rem;
   margin-bottom: 0px;
@@ -54,8 +52,6 @@ div .hero-section {
   max-width: 700px;
   font-weight: 700;
   color: #FFFF00;
-
-
 }
 
 .content-section {
@@ -66,9 +62,6 @@ div .hero-section {
   flex-direction: row;
   justify-content: center;
   gap: 40px;
-
-
-
 }
 
 .content-section h2 {
@@ -88,8 +81,6 @@ div .hero-section {
 
   padding: 0.5rem;
 }
-
-
 
 .start-game {
   margin-top: 2rem;
@@ -155,5 +146,33 @@ div .hero-section {
 
 .hero-downheading {
   animation: blink 1.5s linear infinite;
-  /* Additional styling for your 'hero-downheading' class */
+}
+
+
+@media screen and (max-width: 768px) {
+  .hero-heading {
+    font-size: 4rem; 
+  }
+
+  .hero-subheading, .hero-downheading {
+    font-size: 1.2rem;
+    padding: 20px;
+  }
+
+  .content-section {
+    flex-direction: column; 
+    gap: 20px;
+    padding: 20px 10px; 
+  }
+
+  .game-info {
+    max-width: 100%; 
+    padding: 20px; 
+  }
+
+  .start-game button {
+    padding: 0.8rem 1.6rem; 
+    font-size: 1.2rem;
+  }
+
 }

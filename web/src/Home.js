@@ -57,7 +57,7 @@ function Home() {
                 </button>
               </div>}
               {(status == 'connected' && chainId == CHAIN_ID) && <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <button className='game-heading-btn' onClick={() => window.location.href = '/game'}>
+                <button className='game-heading-btn code-font' onClick={() => window.location.href = '/game'}>
                   ENTER DUNGEON
                 </button>
               </div>}
@@ -86,7 +86,7 @@ function Home() {
                 </button>
               </div>}
               {(status == 'connected' && chainId == CHAIN_ID) && <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <button className='ico-heading-btn' onClick={() => window.location.href = '/token'}>
+                <button className='ico-heading-btn code-font' onClick={() => window.location.href = '/token'}>
                   TOKEN ICO
                 </button>
               </div>}
