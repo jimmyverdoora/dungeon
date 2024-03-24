@@ -44,7 +44,7 @@ function Home() {
             <p className='code-font'>To start, buy a bronze key from the merchant island (0.M). (Your location is marked on the map with: O.`{'>'}`).<br></br> <br></br>
               Next, loot other islands to find items or keys to higher-value islands. (Already looted islands marked with borders.) <br></br> <br></br>
               Island keys are unlocked in order: Bronze, Silver, Gold, Diamond, Mythic. (Small Matic fee to move between islands.)<br></br> <br></br>
-              If you find the Diamond Key to access a Mythic Room you get 1/5 of the MEGA Payout. (Payouts happen post-opening all Mythic Rooms and Chapter 2 "West Blue" starts.)
+              If you find the Diamond Key to access a Mythic Island you get 1/5 of the MEGA Payout. (Payouts happen post-looting all Mythic Islands and Chapter 2 "West Blue" starts.)
             </p>
           </div>
 

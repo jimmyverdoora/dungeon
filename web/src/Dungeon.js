@@ -66,7 +66,7 @@ function Dungeon() {
 
   //     const currentBlock = await web3ws.eth.getBlockNumber();
   //     const wsContract = new web3ws.eth.Contract(abi, CONTRACT_ADDRESS);
-  //     listener = wsContract.events.RoomOpened({ fromBlock: currentBlock });
+  //     listener = wsContract.events.IslandLooted({ fromBlock: currentBlock });
 
   //     listener.on("data", (event) => {
   //       console.log(event.returnValues);
@@ -129,18 +129,20 @@ function Dungeon() {
       if (!atStart) {
         const newLoot = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].filter(i => Number(inv.loot[i]) > inventory.loot[i])[0];
         const newKey = [0, 1, 2, 3, 4].filter(i => Number(inv.keys[i]) > inventory.keys[i])[0];
-        if (newLoot) {
-          setInfo(`You found a ${lootName[newLoot]}${newKey ? ` and a ${rarityName[newKey]} key` : ""}!`)
+        if (newLoot || newKey) {
+          setInfo(`You found ${newLoot ? `a ${lootName[newLoot]}` : ""}${(newKey && newLoot) ? ` and ` : ""}${newKey ? `a ${rarityName[newKey]} key` : ""}!`);
+        } else {
+          setInfo('There is nothing in this Island... Try again, there is 60% chance of finding valuable loot!');
         }
       }
       setInventory({ keys: inv.keys.map(k => Number(k)), loot: inv.loot.map(k => Number(k)) });
     }
     setAction(null);
-    const isOpening = await contract.methods.opening(account).call();
+    const isOpening = await contract.methods.looting(account).call();
     if (!isOpening.isOpening) {
       return;
     }
-    const openingAtBlock = Number(await contract.methods.openingAtBlock(isOpening.x, isOpening.y).call());
+    const openingAtBlock = Number(await contract.methods.lootingAtBlock(isOpening.x, isOpening.y).call());
     let currentBlock = Number(await web3.eth.getBlockNumber());
     if (currentBlock >= openingAtBlock + 256) {
       return;
@@ -150,12 +152,12 @@ function Dungeon() {
       await new Promise(r => setTimeout(r, 1000));
       currentBlock = Number(await web3.eth.getBlockNumber());
     }
-    setAction(`Sending opening confirmation of ${isOpening.x}x ${isOpening.y}y...`);
+    setAction(`Sending looting confirmation of ${isOpening.x}x ${isOpening.y}y...`);
     try {
       const gp = await web3.eth.getGasPrice();
       const w3 = new Web3(ethereum);
       const con = new w3.eth.Contract(abi, CONTRACT_ADDRESS);
-      const rec2 = await con.methods.completeOpening().send({
+      const rec2 = await con.methods.completeLooting().send({
         gasPrice: Math.round(Number(gp) * 1.5).toString(),
         from: account
       });
@@ -199,10 +201,10 @@ function Dungeon() {
         if (hasKey(cell)) {
           return setShowOpen([cell.x, cell.y]);
         } else {
-          return setInfo("YOU NEED A KEY TO OPEN THE ROOM!");
+          return setInfo("YOU NEED A KEY TO LOOT THE ISLAND!");
         }
       } else {
-        return setInfo("YOU NEED TO MOVE ADJACENT TO A ROOM TO OPEN IT!");
+        return setInfo("YOU NEED TO MOVE ADJACENT TO AN ISLAND TO LOOT IT!");
       }
     }
   }
@@ -218,7 +220,7 @@ function Dungeon() {
         gasPrice: Math.round(Number(gp) * 1.5).toString(),
       });
       console.log(receipt);
-      loadInfo();
+      loadInfo(true);
     } catch (e) {
       console.error(e);
       setAction(null);
@@ -238,7 +240,7 @@ function Dungeon() {
         value: price
       });
       console.log(receipt);
-      loadInfo();
+      loadInfo(true);
     } catch (e) {
       console.error(e);
       setAction(null);
@@ -257,7 +259,7 @@ function Dungeon() {
         from: account
       });
       console.log(receipt);
-      loadInfo();
+      loadInfo(true);
     } catch (e) {
       console.error(e);
       setAction(null);
@@ -277,7 +279,7 @@ function Dungeon() {
         value: Web3.utils.toWei(num * fee, 'szabo')
       });
       console.log(receipt);
-      loadInfo();
+      loadInfo(true);
     } catch (e) {
       console.error(e);
       setAction(null);
@@ -291,9 +293,9 @@ function Dungeon() {
     const w3 = new Web3(ethereum);
     const con = new w3.eth.Contract(abi, CONTRACT_ADDRESS);
     try {
-      setAction(`Initiating opening of ${x}x ${y}y...`);
+      setAction(`Initiating looting of ${x}x ${y}y...`);
       let gp = await web3.eth.getGasPrice();
-      const receipt = await con.methods.openRoom(x, y).send({
+      const receipt = await con.methods.lootIsland(x, y).send({
         gasPrice: Math.round(Number(gp) * 1.5).toString(),
         from: account
       });
@@ -312,9 +314,9 @@ function Dungeon() {
         await new Promise(r => setTimeout(r, 1000));
         currentBlock = Number(await web3.eth.getBlockNumber());
       }
-      setAction(`Sending opening confirmation of ${x}x ${y}y...`);
+      setAction(`Sending looting confirmation of ${x}x ${y}y...`);
       gp = await web3.eth.getGasPrice();
-      const rec2 = await con.methods.completeOpening().send({
+      const rec2 = await con.methods.completeLooting().send({
         gasPrice: Math.round(Number(gp) * 1.5).toString(),
         from: account
       });
@@ -468,7 +470,7 @@ function Dungeon() {
     });
   }
 
-  const topLeftPad = Math.max(totInside.toString().length + 17, totRooms.toString().length + 16, totRoomsD.toString().length + 15, news.length + 2);
+  const topLeftPad = Math.max(totInside.toString().length + 17, totRooms.toString().length + 18, totRoomsD.toString().length + 17, news.length + 2);
 
   const dvPad = (openers[0] || openers[1] || openers[2] || openers[3]) ? Math.max(estPayout.toString().length, 13) : estPayout.toString().length;
 
@@ -498,33 +500,33 @@ function Dungeon() {
       {showOpen && <div style={{ zIndex: 1, color: '#ff2222', backgroundColor: 'black', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontFamily: 'monospace' }}>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+---------------------------------------------------------------------+</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| <span style={{ color: '#ffa347' }}>WARNING! READ EXTREMELY CAREFULLY!!!!!</span>{'\u00A0'.repeat(30)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| You are about to open cell {showOpen[0]}x {showOpen[1]}y.{'\u00A0'.repeat(37 - showOpen[0].toString().length - showOpen[1].toString().length)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| You are about to loot island {showOpen[0]}x {showOpen[1]}y.{'\u00A0'.repeat(35 - showOpen[0].toString().length - showOpen[1].toString().length)}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| To grant a tamper-resistant randomness algorithm the contract uses{'\u00A0'.repeat(2)}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| multiple calls of the blockhash function. Unfortunately, block{'\u00A0'.repeat(6)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| hashes older than 256 blocks are not accessible. To open a door you{'\u00A0'}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| will need to submit 2 transactions which are mined less than 256{'\u00A0'.repeat(4)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| and more than 40 blocks apart. The dapp will take care of that, you{'\u00A0'}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| just need to do the following: send the 1st transaction. After 40{'\u00A0'.repeat(3)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| blocks (roughly 2 minutes), the metamask pop up will show up again{'\u00A0'.repeat(2)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| asking you to sign and send the 2nd one. You have to send it as{'\u00A0'.repeat(5)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| soon as possible (ideally within a minute should be enough but{'\u00A0'.repeat(6)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| hashes older than 256 blocks are not accessible. To loot an island{'\u00A0'.repeat(2)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| you will need to submit 2 transactions which are mined less than{'\u00A0'.repeat(4)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| 256 and more than 40 blocks apart. The dapp will take care of that,{'\u00A0'}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| you just need to do the following: send the 1st transaction. After{'\u00A0'.repeat(2)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| 40 blocks (roughly 2 minutes), the metamask pop up will show up{'\u00A0'.repeat(5)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| again asking you to sign and send the 2nd one. You have to send it{'\u00A0'.repeat(2)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| as soon as possible (ideally within a minute should be enough but{'\u00A0'.repeat(3)}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| just sign and send as soon as it pops up).{'\u00A0'.repeat(26)}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| <span style={{ color: '#ffa347' }}>TLDR</span> click below to send the 1st transaction. As soon as you see{'\u00A0'.repeat(4)}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>|{'\u00A0'.repeat(6)}the pop up with the 2nd transaction, sign and send it as well. |</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#ffa347' }} onClick={() => startDoorOpening()}>I UNDERSTAND, LET'S OPEN THIS DOOR!</a>{'\u00A0'.repeat(27)}<a href="#" style={{ textDecoration: 'none', color: '#ffa347' }} onClick={() => setShowOpen(null)}>CLOSE</a> |</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#ffa347' }} onClick={() => startDoorOpening()}>I UNDERSTAND, LET'S LOOT THIS ISLAND!</a>{'\u00A0'.repeat(25)}<a href="#" style={{ textDecoration: 'none', color: '#ffa347' }} onClick={() => setShowOpen(null)}>CLOSE</a> |</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+---------------------------------------------------------------------+</p>
       </div>}
       <div style={{ color: '#4aff47', backgroundColor: 'black', position: 'absolute', top: '10px', left: '10px', fontFamily: 'monospace' }}>
         <p style={{ marginBottom: 0, marginTop: 0 }}>{'\u00A0'}DEGENS INSIDE: {totInside}{'\u00A0'.repeat(Math.max(1, topLeftPad - totInside.toString().length - 16))}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>{'\u00A0'}ROOMS FOUND: {totRoomsD}{'\u00A0'.repeat(Math.max(1, topLeftPad - totRoomsD.toString().length - 14))}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>{'\u00A0'}ROOMS OPENED: {totRooms}{'\u00A0'.repeat(Math.max(1, topLeftPad - totRooms.toString().length - 15))}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>{'\u00A0'}ISLANDS FOUND: {totRoomsD}{'\u00A0'.repeat(Math.max(1, topLeftPad - totRoomsD.toString().length - 16))}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>{'\u00A0'}ISLANDS LOOTED: {totRooms}{'\u00A0'.repeat(Math.max(1, topLeftPad - totRooms.toString().length - 17))}|</p>
         {news && <p style={{ marginBottom: 0, marginTop: 0 }}>{'\u00A0'}{news} |</p>}
         <p style={{ marginBottom: 0, marginTop: 0 }}>{'-'.repeat(topLeftPad)}+</p>
       </div>
       <div style={{ color: rarityColor[4], backgroundColor: 'black', position: 'absolute', top: '10px', right: '10px', fontFamily: 'monospace' }}>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| ESTIMATED FINAL TREASURE: {estPayout} MATIC</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+----------------------------------{'-'.repeat(dvPad)}</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| MYTHIC ISLAND OPENERS </p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| MYTHIC ISLAND LOOTERS </p>
         {openers.map((opener, idx) => (<p style={{ marginBottom: 0, marginTop: 0 }}>| {idx + 1}: {opener}</p>))}
         <p style={{ marginBottom: 0, marginTop: 0 }}>+----------------------------------{'-'.repeat(dvPad)}</p>
       </div>

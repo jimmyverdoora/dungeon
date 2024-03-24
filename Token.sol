@@ -252,7 +252,7 @@ contract DungeonToken is IERC20 {
         uint256 eth = address(this).balance;
         uint256 dung = _balances[address(this)];
         uint256 currentK = eth.mul(dung);
-        return currentK.div(dung.sub(output)).sub(eth);
+        return currentK.div(dung.sub(output)).sub(eth).add(1);
     }
 
     function estimateBuy(uint256 value) public view returns (uint256) {
