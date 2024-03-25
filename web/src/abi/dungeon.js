@@ -34,7 +34,7 @@ const abi = [
 				"type": "int256"
 			}
 		],
-		"name": "NewRoom",
+		"name": "NewIsland",
 		"type": "event"
 	},
 	{
@@ -68,11 +68,11 @@ const abi = [
 			{
 				"indexed": false,
 				"internalType": "address",
-				"name": "opener",
+				"name": "looter",
 				"type": "address"
 			}
 		],
-		"name": "RoomOpened",
+		"name": "IslandLooted",
 		"type": "event"
 	},
 	{
@@ -90,7 +90,7 @@ const abi = [
 	},
 	{
 		"inputs": [],
-		"name": "completeOpening",
+		"name": "completeLooting",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -133,7 +133,7 @@ const abi = [
 				"type": "int256"
 			}
 		],
-		"name": "openRoom",
+		"name": "lootIsland",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -209,7 +209,7 @@ const abi = [
 			},
 			{
 				"internalType": "bool",
-				"name": "open",
+				"name": "looted",
 				"type": "bool"
 			},
 			{
@@ -219,7 +219,7 @@ const abi = [
 			},
 			{
 				"internalType": "address",
-				"name": "opener",
+				"name": "looter",
 				"type": "address"
 			}
 		],
@@ -478,7 +478,7 @@ const abi = [
 				"type": "address"
 			}
 		],
-		"name": "opening",
+		"name": "looting",
 		"outputs": [
 			{
 				"internalType": "bool",
@@ -512,7 +512,7 @@ const abi = [
 				"type": "int256"
 			}
 		],
-		"name": "openingAtBlock",
+		"name": "lootingAtBlock",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -611,7 +611,7 @@ const abi = [
 	},
 	{
 		"inputs": [],
-		"name": "totalRooms",
+		"name": "totalIslands",
 		"outputs": [
 			{
 				"internalType": "uint256",
