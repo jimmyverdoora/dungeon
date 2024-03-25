@@ -1,5 +1,5 @@
 import React from 'react';
-import backgroundImage from './images/landing4.png';
+import backgroundImage from './images/landing8.png';
 import './Landing.css';
 import { useMetaMask } from "metamask-react";
 import { CHAIN_ID } from './constants';
@@ -30,10 +30,10 @@ function Home() {
       <div className="hero-section " style={{ backgroundImage: `url(${backgroundImage})` }}>
         <div className='test-section'>
           <h1 className='hero-heading'>$DUNGeon Islands</h1>
-          <p className='hero-subheading '>We are starting the biggest treasure hunt crypto degens have ever seen. $100M.</p>
+          <p className='hero-subheading '>Biggest treasure hunt crypto has ever seen. Chapter One to Five, $2M to $100M. </p>
         </div>
         <div>
-          <p className='hero-downheading code-font'>Scroll down to enter "Chapter 1: East Blue" & find the $2M Payout.</p>
+          <p className='hero-downheading code-font'>Scroll down to enter "Chapter 1: $2M Payout" OR participate in $DUNG ICO.</p>
         </div>
       </div>
       <div className="content-section">
@@ -49,10 +49,10 @@ function Home() {
           </div>
 
 
-          <div className="start-game">
+          <div className="start-game ">
             <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
               {(status != 'connected' || chainId != CHAIN_ID) && <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <button className='game-heading-btn' onClick={handleConnect}>
+                <button className='game-heading-btn code-font' onClick={handleConnect}>
                   {button}
                 </button>
               </div>}
@@ -81,7 +81,7 @@ function Home() {
           <div className="start-game">
             <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
               {(status != 'connected' || chainId != CHAIN_ID) && <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <button className='ico-heading-btn' onClick={handleConnect}>
+                <button className='ico-heading-btn code-font' onClick={handleConnect}>
                   {button}
                 </button>
               </div>}
