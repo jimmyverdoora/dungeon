@@ -86,7 +86,7 @@ function Dungeon() {
     setAction('\u00A0'.repeat(15) + "Loading...");
     await new Promise(r => setTimeout(r, 1000));
     const b = await web3.eth.getBalance(account);
-    setBalance((Number(Web3.utils.fromWei(b.toString(), 'ether'))).toFixed(8));
+    setBalance((Number(Web3.utils.fromWei(b.toString(), 'ether'))).toFixed(6));
     const cb = await web3.eth.getBalance(CONTRACT_ADDRESS);
     setDiamondValue((Number(Web3.utils.fromWei(cb.toString(), 'finney')) / 1000).toFixed(10));
     const ti = await contract.methods.totalInside().call();
@@ -440,9 +440,9 @@ function Dungeon() {
   const estPayoutNum = totRooms ? Math.round(diamondValue / totRooms * totRoomEst) : 0;
   let estPayout;
   if (estPayoutNum >= 1000000) {
-    estPayout = (estPayoutNum / 1000000).toFixed(6).replace(/\.?0+$/, '') + 'M';
+    estPayout = (estPayoutNum / 1000000).toFixed(2).replace(/\.?0+$/, '') + 'M';
   } else if (estPayoutNum >= 1000) {
-    estPayout = (estPayoutNum / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    estPayout = (estPayoutNum / 1000).toFixed(2).replace(/\.0$/, '') + 'K';
   } else {
     estPayout = estPayoutNum.toString();
   }
@@ -529,6 +529,8 @@ function Dungeon() {
         <p style={{ marginBottom: 0, marginTop: 0 }}>+----------------------------------{'-'.repeat(dvPad)}</p>
       </div>
       <div style={{ color: '#4aff47', backgroundColor: 'black', position: 'absolute', bottom: '10px', right: '10px', fontFamily: 'monospace' }}>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+--------------------------------------------</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href={"https://polygonscan.com/address/" + CONTRACT_ADDRESS} target='_blank' style={{ textDecoration: 'none', color: '#ffa347' }}>DUNGEON ENGINE CONTRACT</a></p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+--------------------------------------------</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| {account}</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| Balance: {balance} MATIC</p>

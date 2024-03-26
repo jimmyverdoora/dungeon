@@ -28,7 +28,7 @@ function Token() {
     const b = await web3.eth.getBalance(account);
     setBalance((Number(Web3.utils.fromWei(b.toString(), 'ether'))).toFixed(6));
     const cb = await web3.eth.getBalance(ICO_ADDRESS);
-    setIcoValueTot((Number(Web3.utils.fromWei(cb.toString(), 'ether'))).toFixed(4))
+    setIcoValueTot((Number(Web3.utils.fromWei(cb.toString(), 'ether'))).toFixed(2))
     const iv = await contract.methods.getContribution().call({ from: account });
     setIcoValue((Number(Web3.utils.fromWei(iv.toString(), 'ether'))).toFixed(6))
   }
@@ -84,7 +84,7 @@ function Token() {
       {showOpen && <div style={{ zIndex: 1, color: '#fc4521', backgroundColor: 'black', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontFamily: 'monospace', fontSize: 'large' }}>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+------------------------------------------------------------+</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>|{'\u00A0'.repeat(25)}<span style={{ color: '#ffd480' }}>BUY $DUNG</span>{'\u00A0'.repeat(26)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| 30% of the total supply will be distributed proportionally{'\u00A0'}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| 40% of the total supply will be distributed proportionally{'\u00A0'}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| to the ICO participants. Once the limit block is reached,{'\u00A0'.repeat(2)}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| all the MATIC locked will be added in the token liquidity{'\u00A0'.repeat(2)}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| pool, $DUNG token given out to ICO members and buy/sell{'\u00A0'.repeat(4)}|</p>
