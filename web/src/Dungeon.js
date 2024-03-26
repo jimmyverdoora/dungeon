@@ -362,7 +362,7 @@ function Dungeon() {
       }
       result.push(row);
     }
-    setTotRooms(openedRooms);
+    setTotRooms(openedRooms-1);
     setTotRoomsD(discoveredRooms);
     return result;
   }
