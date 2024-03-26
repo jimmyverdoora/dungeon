@@ -143,9 +143,9 @@ contract DungeonToken is IERC20 {
     constructor(uint256 _ts, address _icoAddress, address _devsWallet, uint256 _ie) {
         _totalSupply = _ts;
         _icoEnd = _ie;
-        _balances[address(this)] = 5 * _ts / 10;
-        _balances[_devsWallet] = 2 * _ts / 10;
-        _balances[_icoAddress] = 3 * _ts / 10;
+        _balances[address(this)] = 2 * _ts / 5;
+        _balances[_devsWallet] = 1 * _ts / 5;
+        _balances[_icoAddress] = 2 * _ts / 5;
     }
 
     receive() external payable {}

@@ -83,10 +83,10 @@ function Dungeon() {
   // }, []);
 
   const loadInfo = async (atStart = false) => {
-    setAction("Loading...");
+    setAction('\u00A0'.repeat(15) + "Loading...");
     await new Promise(r => setTimeout(r, 1000));
     const b = await web3.eth.getBalance(account);
-    setBalance((Number(Web3.utils.fromWei(b.toString(), 'ether'))).toFixed(8));
+    setBalance((Number(Web3.utils.fromWei(b.toString(), 'ether'))).toFixed(6));
     const cb = await web3.eth.getBalance(CONTRACT_ADDRESS);
     setDiamondValue((Number(Web3.utils.fromWei(cb.toString(), 'finney')) / 1000).toFixed(10));
     const ti = await contract.methods.totalInside().call();
@@ -362,7 +362,7 @@ function Dungeon() {
       }
       result.push(row);
     }
-    setTotRooms(openedRooms);
+    setTotRooms(openedRooms - 1);
     setTotRoomsD(discoveredRooms);
     return result;
   }
@@ -440,9 +440,9 @@ function Dungeon() {
   const estPayoutNum = totRooms ? Math.round(diamondValue / totRooms * totRoomEst) : 0;
   let estPayout;
   if (estPayoutNum >= 1000000) {
-    estPayout = (estPayoutNum / 1000000).toFixed(6).replace(/\.?0+$/, '') + 'M';
+    estPayout = (estPayoutNum / 1000000).toFixed(2).replace(/\.?0+$/, '') + 'M';
   } else if (estPayoutNum >= 1000) {
-    estPayout = (estPayoutNum / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    estPayout = (estPayoutNum / 1000).toFixed(2).replace(/\.0$/, '') + 'K';
   } else {
     estPayout = estPayoutNum.toString();
   }
@@ -474,6 +474,8 @@ function Dungeon() {
 
   const dvPad = (openers[0] || openers[1] || openers[2] || openers[3]) ? Math.max(estPayout.toString().length, 13) : estPayout.toString().length;
 
+  const actionPad = action ? Math.max(action.length, 40) : 0;
+
   return (
     <div>
       <div style={{ backgroundColor: 'black', position: 'absolute', ...view, transform: 'translate(-50%, -50%)', fontFamily: 'monospace' }}>
@@ -487,9 +489,10 @@ function Dungeon() {
         <p style={{ marginBottom: 0, marginTop: 0 }}>+---------------------------+</p>
       </div>}
       {action && <div style={{ zIndex: 1, color: '#4aff47', backgroundColor: 'black', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontFamily: 'monospace' }}>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>+-{'-'.repeat(action.length)}-+</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| {action} |</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>+-{'-'.repeat(action.length)}-+</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+-{'-'.repeat(actionPad)}-+</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| {action} {'\u00A0'.repeat(Math.max(0, 40 - action.length))}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| IN CASE OF ANY PROBLEM, REFRESH THE PAGE {'\u00A0'.repeat(Math.max(0, actionPad - 40))}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+-{'-'.repeat(actionPad)}-+</p>
       </div>}
       {info && <div style={{ zIndex: 1, color: '#ff2222', backgroundColor: 'black', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontFamily: 'monospace' }}>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+-{'-'.repeat(info.length)}-+</p>
@@ -498,23 +501,18 @@ function Dungeon() {
         <p style={{ marginBottom: 0, marginTop: 0 }}>+-{'-'.repeat(info.length)}-+</p>
       </div>}
       {showOpen && <div style={{ zIndex: 1, color: '#ff2222', backgroundColor: 'black', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontFamily: 'monospace' }}>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>+---------------------------------------------------------------------+</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| <span style={{ color: '#ffa347' }}>WARNING! READ EXTREMELY CAREFULLY!!!!!</span>{'\u00A0'.repeat(30)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| You are about to loot island {showOpen[0]}x {showOpen[1]}y.{'\u00A0'.repeat(35 - showOpen[0].toString().length - showOpen[1].toString().length)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| To grant a tamper-resistant randomness algorithm the contract uses{'\u00A0'.repeat(2)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| multiple calls of the blockhash function. Unfortunately, block{'\u00A0'.repeat(6)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| hashes older than 256 blocks are not accessible. To loot an island{'\u00A0'.repeat(2)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| you will need to submit 2 transactions which are mined less than{'\u00A0'.repeat(4)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| 256 and more than 40 blocks apart. The dapp will take care of that,{'\u00A0'}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| you just need to do the following: send the 1st transaction. After{'\u00A0'.repeat(2)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| 40 blocks (roughly 2 minutes), the metamask pop up will show up{'\u00A0'.repeat(5)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| again asking you to sign and send the 2nd one. You have to send it{'\u00A0'.repeat(2)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| as soon as possible (ideally within a minute should be enough but{'\u00A0'.repeat(3)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| just sign and send as soon as it pops up).{'\u00A0'.repeat(26)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| <span style={{ color: '#ffa347' }}>TLDR</span> click below to send the 1st transaction. As soon as you see{'\u00A0'.repeat(4)}|</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>|{'\u00A0'.repeat(6)}the pop up with the 2nd transaction, sign and send it as well. |</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#ffa347' }} onClick={() => startDoorOpening()}>I UNDERSTAND, LET'S LOOT THIS ISLAND!</a>{'\u00A0'.repeat(25)}<a href="#" style={{ textDecoration: 'none', color: '#ffa347' }} onClick={() => setShowOpen(null)}>CLOSE</a> |</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>+---------------------------------------------------------------------+</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+---------------------------------------------------+</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| <span style={{ color: '#ffa347' }}>ATTENTION: 2 Transactions!</span>{'\u00A0'.repeat(24)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| {'\u00A0'.repeat(49)} |</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| You are about to loot island {showOpen[0]}x {showOpen[1]}y.{'\u00A0'.repeat(17 - showOpen[0].toString().length - showOpen[1].toString().length)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| To ensure tamper-resistant randomness of the game |</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| you will have to approve two transactions.{'\u00A0'.repeat(8)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| After approving the first one, wait for a second{'\u00A0'.repeat(2)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| one to pop up after 40 blocks and approve it{'\u00A0'.repeat(6)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| straight away. {'\u00A0'.repeat(35)}|</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| {'\u00A0'.repeat(49)} |</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#ffa347' }} onClick={() => startDoorOpening()}>I UNDERSTAND, LET'S LOOT THIS ISLAND!</a>{'\u00A0'.repeat(7)}<a href="#" style={{ textDecoration: 'none', color: '#ffa347' }} onClick={() => setShowOpen(null)}>CLOSE</a> |</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+---------------------------------------------------+</p>
       </div>}
       <div style={{ color: '#4aff47', backgroundColor: 'black', position: 'absolute', top: '10px', left: '10px', fontFamily: 'monospace' }}>
         <p style={{ marginBottom: 0, marginTop: 0 }}>{'\u00A0'}DEGENS INSIDE: {totInside}{'\u00A0'.repeat(Math.max(1, topLeftPad - totInside.toString().length - 16))}|</p>
@@ -531,6 +529,8 @@ function Dungeon() {
         <p style={{ marginBottom: 0, marginTop: 0 }}>+----------------------------------{'-'.repeat(dvPad)}</p>
       </div>
       <div style={{ color: '#4aff47', backgroundColor: 'black', position: 'absolute', bottom: '10px', right: '10px', fontFamily: 'monospace' }}>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>+--------------------------------------------</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href={"https://polygonscan.com/address/" + CONTRACT_ADDRESS} target='_blank' style={{ textDecoration: 'none', color: '#ffa347' }}>DUNGEON ENGINE CONTRACT</a></p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+--------------------------------------------</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| {account}</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| Balance: {balance} MATIC</p>
