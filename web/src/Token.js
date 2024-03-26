@@ -108,7 +108,7 @@ function Token() {
         /><span style={{ color: '#ffd480' }}>{'\u00A0'.repeat(2)}|</span>{'\u00A0'.repeat(22)} </p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>|{'\u00A0'.repeat(22)}<span style={{ color: '#ffd480' }}>+-------------+</span>{'\u00A0'.repeat(23)}|</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>| {'\u00A0'.repeat(58)} |</p>
-        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#ffd480' }} onClick={() => sendValue()}>LOCK!</a>{'\u00A0'.repeat(48)}<a href="#" style={{ textDecoration: 'none', color: '#ffd480' }} onClick={() => setShowOpen(false)}>CLOSE</a> |</p>
+        <p style={{ marginBottom: 0, marginTop: 0 }}>| <a href="#" style={{ textDecoration: 'none', color: '#47fffc' }} onClick={() => sendValue()}>LOCK!</a>{'\u00A0'.repeat(48)}<a href="#" style={{ textDecoration: 'none', color: '#ffd480' }} onClick={() => setShowOpen(false)}>CLOSE</a> |</p>
         <p style={{ marginBottom: 0, marginTop: 0 }}>+------------------------------------------------------------+</p>
       </div>}
     </div>
